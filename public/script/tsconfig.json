@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "target": "es6",
+    "lib": ["es6", "dom", "es2017"],
+    "newLine": "CRLF",
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "strictNullChecks": false
+  },
+  "exclude": [
+
+  ]
+}
