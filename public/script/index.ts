@@ -85,7 +85,10 @@ $(document).ready(function() {
 
 			moveTanks();
 			drawTankBase(tanksCX,G.p1.x,G.p1.y,"rgb(255,30,30)");
-			drawTankCannon(tanksCX, G.p1.x,G.p1.y,Math.PI / 2);
+			let tankMidX = G.p1.x + TANK_WIDTH_HALF;
+			let tankMidY = G.p1.y + TANK_HEIGHT_HALF;
+			let angle = getAngle(tankMidX,tankMidY,I.x,I.y);
+			drawTankCannon(tanksCX, G.p1.x,G.p1.y,angle);
 
 			X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		}
@@ -157,6 +160,8 @@ function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
 	X.fillRect(x,y,TANK_WIDTH,TANK_HEIGHT);
 	X.fillStyle = color;
 	X.fillRect(x+TANK_MARGIN,y+TANK_MARGIN,TANK_INNER_WIDTH,TANK_INNER_HEIGHT);
+	X.fillStyle = "rgb(220,200,250)";
+	X.fillRect(x,y,3,3);
 }
 
 function drawTankCannon(X: CanvasRenderingContext2D, x, y, angle) {
@@ -171,6 +176,12 @@ function rotate(X: CanvasRenderingContext2D, x, y, angle) {
 	X.translate(x,y);
 	X.rotate(angle);
 	X.translate(-x,-y);
+}
+
+function getAngle(fromX, fromY, toX, toY) {
+	let dy = toY-fromY;
+	let dx = toX-fromX;
+	return Math.atan2(dy,dx);
 }
 
 function resetAngle(X: CanvasRenderingContext2D) {
