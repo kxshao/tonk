@@ -1,3 +1,4 @@
+import * as Tanks from "./tank.js";
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const TANK_WIDTH = 30;
@@ -16,9 +17,11 @@ const KEY_LEFT = "ArrowLeft";
 const KEY_RIGHT = "ArrowRight";
 class Game {
     constructor() {
+        this.p1 = new Tanks.Player();
     }
 }
 window.G = new Game();
+let G = window.G;
 class Input {
     constructor() {
         this.left = false;
@@ -32,23 +35,36 @@ class Input {
     }
 }
 window.I = new Input();
+let I = window.I;
 let tanksLayer = document.createElement('canvas');
 tanksLayer.width = CANVAS_WIDTH;
 tanksLayer.height = CANVAS_HEIGHT;
 let tanksCX = tanksLayer.getContext("2d");
 let C;
+let X;
 $(document).ready(function () {
     C = document.getElementById("canvas");
     C.width = CANVAS_WIDTH;
     C.height = CANVAS_HEIGHT;
-    let X = C.getContext("2d");
-    drawTankBase(tanksCX, 40, 70, "rgb(255,30,30)");
-    drawTankCannon(tanksCX, 40, 70, Math.PI / 2);
-    X.drawImage(tanksLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    X = C.getContext("2d");
+    G.p1.setPos(0, 0);
     bindInputEvents(C);
+    (function () {
+        function main() {
+            window.G.stopMain = window.requestAnimationFrame(main);
+            resetAngle(X);
+            X.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            tanksCX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            moveTanks();
+            drawTankBase(tanksCX, G.p1.x, G.p1.y, "rgb(255,30,30)");
+            drawTankCannon(tanksCX, G.p1.x, G.p1.y, Math.PI / 2);
+            X.drawImage(tanksLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        }
+        main(); // Start the cycle
+    })();
 });
 function bindInputEvents(e) {
-    e.addEventListener("keydown", function (ev) {
+    window.addEventListener("keydown", function (ev) {
         switch (ev.key) {
             case KEY_UP:
                 window.I.up = true;
@@ -98,8 +114,8 @@ function bindInputEvents(e) {
         ev.preventDefault();
     });
 }
-function moveTank() {
-    //
+function moveTanks() {
+    G.p1.move(I.up, I.down, I.left, I.right);
 }
 function drawTankBase(X, x, y, color) {
     x -= TANK_WIDTH_HALF;
@@ -114,6 +130,7 @@ function drawTankCannon(X, x, y, angle) {
     rotate(X, x, y, angle);
     X.strokeStyle = "rgb(0,0,0)";
     X.strokeRect(x, y - TANK_CANNON_THICC_HALF, TANK_CANNON_LENGTH, TANK_CANNON_THICC);
+    resetAngle(X);
 }
 function rotate(X, x, y, angle) {
     X.translate(x, y);

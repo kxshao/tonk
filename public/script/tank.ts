@@ -13,7 +13,7 @@ enum Cooldown{
 	FAST = 1
 }
 
-class Tank {
+export class Tank {
 	ammo:number;
 	readonly maxAmmo:number;
 	mines:number;
@@ -21,6 +21,8 @@ class Tank {
 	speed:number;
 	cooldown:number;
 	shotType:Shot;
+	x:number;
+	y:number;
 	protected constructor(ammo,mines,speed,cooldown,shotType) {
 		this.maxAmmo = ammo;
 		this.ammo = this.maxAmmo;
@@ -29,6 +31,24 @@ class Tank {
 		this.mines = this.maxMines;
 		this.cooldown = cooldown;
 		this.shotType = shotType;
+	}
+	setPos(x,y){
+		this.x=x;
+		this.y=y;
+		return this;
+	}
+	move(u,d,l,r){
+		if(u && !d){
+			this.y -= this.speed;
+		} else if(!u && d){
+			this.y += this.speed;
+		}
+		if(l && !r){
+			this.x -= this.speed;
+		} else if(!l && r){
+			this.x += this.speed;
+		}
+		return this;
 	}
 }
 
@@ -43,7 +63,7 @@ class Shot {
 	}
 }
 
-class Player extends Tank{
+export class Player extends Tank{
 	constructor(){
 		super(5,2,MoveSpeed.MED,Cooldown.FAST,new Shot(ShotSpeed.SLOW,1));
 	}

@@ -1,3 +1,5 @@
+import * as Tanks from "./tank.js";
+
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const TANK_WIDTH = 30;
@@ -16,16 +18,22 @@ const KEY_DOWN = "ArrowDown";
 const KEY_LEFT = "ArrowLeft";
 const KEY_RIGHT = "ArrowRight";
 
-interface Window {
-	G:Game;
-	I:Input;
+declare global{
+	interface Window {
+		G:Game;
+		I:Input;
+	}
 }
 
 class Game{
+	stopMain;
+	p1:Tanks.Tank;
 	constructor(){
+		this.p1 = new Tanks.Player();
 	}
 }
 window.G = new Game();
+let G = window.G;
 class Input{
 	left:boolean;
 	right:boolean;
@@ -47,6 +55,7 @@ class Input{
 	}
 }
 window.I = new Input();
+let I = window.I;
 
 let tanksLayer = document.createElement('canvas');
 tanksLayer.width = CANVAS_WIDTH;
@@ -54,22 +63,38 @@ tanksLayer.height = CANVAS_HEIGHT;
 let tanksCX = tanksLayer.getContext("2d") as CanvasRenderingContext2D;
 
 let C:HTMLCanvasElement;
+let X:CanvasRenderingContext2D;
 
 $(document).ready(function() {
 	C = document.getElementById("canvas") as HTMLCanvasElement;
 	C.width = CANVAS_WIDTH;
 	C.height = CANVAS_HEIGHT;
-	let X = C.getContext("2d") as CanvasRenderingContext2D;
+	X = C.getContext("2d") as CanvasRenderingContext2D;
 
-	drawTankBase(tanksCX,40,70,"rgb(255,30,30)");
-	drawTankCannon(tanksCX, 40,70,Math.PI / 2);
-	X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+	G.p1.setPos(0,0);
 
 	bindInputEvents(C);
+
+	(function () {
+		function main() {
+			window.G.stopMain = window.requestAnimationFrame( main );
+
+			resetAngle(X);
+			X.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+			tanksCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+
+			moveTanks();
+			drawTankBase(tanksCX,G.p1.x,G.p1.y,"rgb(255,30,30)");
+			drawTankCannon(tanksCX, G.p1.x,G.p1.y,Math.PI / 2);
+
+			X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+		}
+		main(); // Start the cycle
+	})();
 });
 
 function bindInputEvents(e:HTMLElement) {
-	e.addEventListener("keydown",function(ev:KeyboardEvent) {
+	window.addEventListener("keydown",function(ev:KeyboardEvent) {
 		switch(ev.key) {
 			case KEY_UP:
 				window.I.up = true;
@@ -121,8 +146,8 @@ function bindInputEvents(e:HTMLElement) {
 	});
 }
 
-function moveTank() {
-	//
+function moveTanks() {
+	G.p1.move(I.up,I.down,I.left,I.right);
 }
 
 function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
@@ -139,6 +164,7 @@ function drawTankCannon(X: CanvasRenderingContext2D, x, y, angle) {
 	rotate(X,x,y,angle);
 	X.strokeStyle = "rgb(0,0,0)";
 	X.strokeRect(x,y-TANK_CANNON_THICC_HALF,TANK_CANNON_LENGTH,TANK_CANNON_THICC);
+	resetAngle(X);
 }
 
 function rotate(X: CanvasRenderingContext2D, x, y, angle) {
