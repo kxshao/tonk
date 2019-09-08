@@ -47,25 +47,24 @@ $(document).ready(function () {
     C.width = CANVAS_WIDTH;
     C.height = CANVAS_HEIGHT;
     X = C.getContext("2d");
-    G.p1.setPos(0, 0);
     bindInputEvents(C);
-    (function () {
-        function main() {
-            window.G.stopMain = window.requestAnimationFrame(main);
-            resetAngle(X);
-            X.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            tanksCX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            moveTanks();
-            drawTankBase(tanksCX, G.p1.x, G.p1.y, "rgb(255,30,30)");
-            let tankMidX = G.p1.x + TANK_WIDTH_HALF;
-            let tankMidY = G.p1.y + TANK_HEIGHT_HALF;
-            let angle = getAngle(tankMidX, tankMidY, I.x, I.y);
-            drawTankCannon(tanksCX, G.p1.x, G.p1.y, angle);
-            X.drawImage(tanksLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        }
-        main(); // Start the cycle
-    })();
+    init();
 });
+function init() {
+    G.p1.setPos(0, 0);
+    function main() {
+        window.G.stopMain = window.requestAnimationFrame(main);
+        resetAngle(X);
+        X.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        tanksCX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        moveTanks();
+        drawTankBase(tanksCX, G.p1.x, G.p1.y, "rgb(255,30,30)");
+        let angle = getAngle(G.p1.x, G.p1.y, I.x, I.y);
+        drawTankCannon(tanksCX, G.p1.x, G.p1.y, angle);
+        X.drawImage(tanksLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    }
+    main(); // Start the cycle
+}
 function bindInputEvents(e) {
     window.addEventListener("keydown", function (ev) {
         switch (ev.key) {
@@ -131,7 +130,6 @@ function drawTankBase(X, x, y, color) {
     X.fillRect(x, y, 3, 3);
 }
 function drawTankCannon(X, x, y, angle) {
-    resetAngle(X);
     rotate(X, x, y, angle);
     X.strokeStyle = "rgb(0,0,0)";
     X.strokeRect(x, y - TANK_CANNON_THICC_HALF, TANK_CANNON_LENGTH, TANK_CANNON_THICC);

@@ -31,6 +31,8 @@ export class Tank {
 		this.mines = this.maxMines;
 		this.cooldown = cooldown;
 		this.shotType = shotType;
+		this.x=0;
+		this.y=0;
 	}
 	setPos(x,y){
 		this.x=x;
