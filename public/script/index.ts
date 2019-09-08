@@ -11,7 +11,11 @@ const TANK_INNER_WIDTH = TANK_WIDTH-2*TANK_MARGIN;
 const TANK_INNER_HEIGHT = TANK_HEIGHT-2*TANK_MARGIN;
 const TANK_CANNON_LENGTH = TANK_WIDTH;
 const TANK_CANNON_THICC = 6;
-const TANK_CANNON_THICC_HALF = 3;
+const TANK_CANNON_THICC_HALF = TANK_CANNON_THICC/2;
+const SHOT_LENGTH = 20;
+const SHOT_LENGTH_HALF = SHOT_LENGTH/2;
+const SHOT_THICC = 10;
+const SHOT_THICC_HALF = SHOT_THICC/2;
 
 const KEY_UP = "ArrowUp";
 const KEY_DOWN = "ArrowDown";
@@ -61,6 +65,10 @@ let tanksLayer = document.createElement('canvas');
 tanksLayer.width = CANVAS_WIDTH;
 tanksLayer.height = CANVAS_HEIGHT;
 let tanksCX = tanksLayer.getContext("2d") as CanvasRenderingContext2D;
+let shotsLayer = document.createElement('canvas');
+shotsLayer.width = CANVAS_WIDTH;
+shotsLayer.height = CANVAS_HEIGHT;
+let shotsCX = shotsLayer.getContext("2d") as CanvasRenderingContext2D;
 
 let C:HTMLCanvasElement;
 let X:CanvasRenderingContext2D;
@@ -94,6 +102,7 @@ function init() {
 		drawTankCannon(tanksCX, G.p1.x,G.p1.y,angle);
 
 		X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+		X.drawImage(shotsLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 	}
 	main(); // Start the cycle
 }
@@ -145,6 +154,8 @@ function bindInputEvents(e:HTMLElement) {
 		window.I.y = (ev.clientY - rect.top) * C.height / rect.height;
 
 		$("#txt").text("click "+window.I.x+","+window.I.y);
+
+		drawShot(shotsCX,I.x,I.y,getAngle(G.p1.x,G.p1.y,I.x,I.y),false);
 	});
 	e.addEventListener("contextmenu",function(ev:MouseEvent) {
 		ev.preventDefault();
@@ -170,6 +181,29 @@ function drawTankCannon(X: CanvasRenderingContext2D, x, y, angle) {
 	rotate(X,x,y,angle);
 	X.strokeStyle = "rgb(0,0,0)";
 	X.strokeRect(x,y-TANK_CANNON_THICC_HALF,TANK_CANNON_LENGTH,TANK_CANNON_THICC);
+	resetAngle(X);
+}
+
+function drawShot(X: CanvasRenderingContext2D, x, y, angle, isRocket) {
+	rotate(X,x,y,angle);
+	X.beginPath();
+	x-=SHOT_LENGTH_HALF;
+	y-=SHOT_THICC_HALF;
+	X.moveTo(x,y);
+	X.lineTo(x+SHOT_LENGTH-SHOT_THICC_HALF,y);
+	X.arc(x+SHOT_LENGTH-SHOT_THICC_HALF,y+SHOT_THICC_HALF,SHOT_THICC_HALF,-Math.PI/2,Math.PI/2);
+	X.lineTo(x,y+SHOT_THICC);
+	X.lineTo(x,y);
+
+	X.fillStyle = "rgb(220,220,220)";
+	X.fill();
+	X.strokeStyle = "rgb(69,69,69)";
+	X.stroke();
+
+	if(isRocket){
+		//todo
+	}
+
 	resetAngle(X);
 }
 
