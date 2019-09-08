@@ -8,6 +8,8 @@ const TANK_HEIGHT_HALF = TANK_HEIGHT / 2;
 const TANK_MARGIN = 4;
 const TANK_INNER_WIDTH = TANK_WIDTH - 2 * TANK_MARGIN;
 const TANK_INNER_HEIGHT = TANK_HEIGHT - 2 * TANK_MARGIN;
+const TANK_TURRET_LENGTH = TANK_INNER_HEIGHT + TANK_MARGIN / 2;
+const TANK_TURRET_LENGTH_HALF = TANK_TURRET_LENGTH / 2;
 const TANK_CANNON_LENGTH = TANK_WIDTH;
 const TANK_CANNON_THICC = 6;
 const TANK_CANNON_THICC_HALF = TANK_CANNON_THICC / 2;
@@ -141,7 +143,11 @@ function drawTankBase(X, x, y, color) {
 }
 function drawTankCannon(X, x, y, angle) {
     rotate(X, x, y, angle);
-    X.strokeStyle = "rgb(0,0,0)";
+    X.strokeStyle = "rgb(30,30,30)";
+    X.fillStyle = "rgb(255,30,30)";
+    X.fillRect(x - TANK_TURRET_LENGTH_HALF, y - TANK_TURRET_LENGTH_HALF, TANK_TURRET_LENGTH, TANK_TURRET_LENGTH);
+    X.strokeRect(x - TANK_TURRET_LENGTH_HALF, y - TANK_TURRET_LENGTH_HALF, TANK_TURRET_LENGTH, TANK_TURRET_LENGTH);
+    X.fillRect(x, y - TANK_CANNON_THICC_HALF, TANK_CANNON_LENGTH, TANK_CANNON_THICC);
     X.strokeRect(x, y - TANK_CANNON_THICC_HALF, TANK_CANNON_LENGTH, TANK_CANNON_THICC);
     resetAngle(X);
 }
