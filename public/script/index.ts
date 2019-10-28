@@ -37,8 +37,11 @@ class Game{
 	stopMain;
 	sock:Socket;
 	p1:Tanks.Tank;
+	p2:Tanks.Tank;
+	id:string;
 	constructor(){
-		this.p1 = new Tanks.Player();
+		this.p1 = new Tanks.Player(1);
+		this.p2 = new Tanks.Player(2);
 	}
 }
 window.G = new Game();
@@ -93,13 +96,14 @@ $(document).ready(function() {
 		G.sock.on('connect', function(sock:Socket){
 			$("#connectStatus").text("connected");
 			console.log("socket",sock);
+			G.id = String($("#connectId").val());
 			init();
 			bindInputEvents(C);
-			G.sock.on('input', function (data) {
-				I.left = data.left;
-				I.right = data.right;
-				I.up = data.up;
-				I.down = data.down;
+			G.sock.on('receivePos', function (data) {
+				data = JSON.parse(data);
+				if(G.id !== data.id){
+					G.p2.setPos(data.x, data.y);
+				}
 			});
 		});
 		$("#connectBtn").remove();
@@ -111,6 +115,7 @@ $(document).ready(function() {
 
 function init() {
 	G.p1.setPos(0,0);
+	G.p2.setPos(CANVAS_WIDTH,CANVAS_HEIGHT);
 
 
 	function main() {
@@ -121,12 +126,22 @@ function init() {
 		tanksCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
 		moveTanks();
-		drawTankBase(tanksCX,G.p1.x,G.p1.y,"rgb(255,30,30)");
+		drawTankBase(tanksCX,G.p1.x,G.p1.y,G.p1.color);
 		let angle = getAngle(G.p1.x,G.p1.y,I.x,I.y);
-		drawTankCannon(tanksCX, G.p1.x,G.p1.y,angle);
+		drawTankCannon(tanksCX, G.p1.x,G.p1.y,angle,G.p1.color);
+
+		drawTankBase(tanksCX,G.p2.x,G.p2.y,G.p2.color);
+		angle = getAngle(G.p2.x,G.p2.y,I.x,I.y);
+		drawTankCannon(tanksCX, G.p2.x,G.p2.y,angle,G.p2.color);
 
 		X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		X.drawImage(shotsLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+
+		G.sock.emit('sendPos', JSON.stringify({
+			"x": G.p1.x,
+			"y": G.p1.y,
+			"id": G.id
+		}));
 	}
 	main(); // Start the cycle
 }
@@ -147,7 +162,6 @@ function bindInputEvents(e:HTMLElement) {
 				window.I.right = true;
 				break;
 		}
-		G.sock.emit('input', I);
 	});
 	window.addEventListener("keyup",function(ev:KeyboardEvent) {
 		switch(ev.key) {
@@ -164,7 +178,6 @@ function bindInputEvents(e:HTMLElement) {
 				window.I.right = false;
 				break;
 		}
-		G.sock.emit('input', I);
 	});
 	e.addEventListener("mousemove",function(ev:MouseEvent) {
 		ev.preventDefault();
@@ -180,7 +193,6 @@ function bindInputEvents(e:HTMLElement) {
 		window.I.y = (ev.clientY - rect.top) * C.height / rect.height;
 
 		$("#txt").text("click "+window.I.x+","+window.I.y);
-		G.sock.emit('input', I);
 
 		drawShot(shotsCX,I.x,I.y,getAngle(G.p1.x,G.p1.y,I.x,I.y),false);
 	});
@@ -204,10 +216,10 @@ function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
 	X.fillRect(x,y,3,3);
 }
 
-function drawTankCannon(X: CanvasRenderingContext2D, x, y, angle) {
+function drawTankCannon(X: CanvasRenderingContext2D, x, y, angle, color) {
 	rotate(X,x,y,angle);
 	X.strokeStyle = "rgb(30,30,30)";
-	X.fillStyle = "rgb(255,30,30)";
+	X.fillStyle = color;
 	X.fillRect(x-TANK_TURRET_LENGTH_HALF,y-TANK_TURRET_LENGTH_HALF,TANK_TURRET_LENGTH,TANK_TURRET_LENGTH);
 	X.strokeRect(x-TANK_TURRET_LENGTH_HALF,y-TANK_TURRET_LENGTH_HALF,TANK_TURRET_LENGTH,TANK_TURRET_LENGTH);
 	X.fillRect(x,y-TANK_CANNON_THICC_HALF,TANK_CANNON_LENGTH,TANK_CANNON_THICC);

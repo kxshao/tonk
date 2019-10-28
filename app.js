@@ -17,8 +17,8 @@ game.on('connection',function(sock){
 	let name = sock.handshake.query.username;
 	console.log("/game connected",name,sock.client.id);
 
-	sock.on('input',function(data){
-		game.emit('input',data);
+	sock.on('sendPos',function(data){
+		game.emit('receivePos',data);
 	});
 });
 
