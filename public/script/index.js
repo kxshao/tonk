@@ -57,8 +57,26 @@ $(document).ready(function () {
     C.width = CANVAS_WIDTH;
     C.height = CANVAS_HEIGHT;
     X = C.getContext("2d");
-    bindInputEvents(C);
-    init();
+    document.getElementById("connectBtn").onclick = function () {
+        G.sock = io.connect('/game', {
+            query: {
+                username: $("#connectId").text()
+            }
+        });
+        G.sock.on('connect', function (sock) {
+            $("#connectStatus").text("connected");
+            console.log("socket", sock);
+            init();
+            bindInputEvents(C);
+            G.sock.on('input', function (data) {
+                I.left = data.left;
+                I.right = data.right;
+                I.up = data.up;
+                I.down = data.down;
+            });
+        });
+        $("#connectBtn").remove();
+    };
 });
 function init() {
     G.p1.setPos(0, 0);
@@ -92,6 +110,7 @@ function bindInputEvents(e) {
                 window.I.right = true;
                 break;
         }
+        G.sock.emit('input', I);
     });
     window.addEventListener("keyup", function (ev) {
         switch (ev.key) {
@@ -108,6 +127,7 @@ function bindInputEvents(e) {
                 window.I.right = false;
                 break;
         }
+        G.sock.emit('input', I);
     });
     e.addEventListener("mousemove", function (ev) {
         ev.preventDefault();
@@ -122,6 +142,7 @@ function bindInputEvents(e) {
         window.I.x = (ev.clientX - rect.left) * C.width / rect.width;
         window.I.y = (ev.clientY - rect.top) * C.height / rect.height;
         $("#txt").text("click " + window.I.x + "," + window.I.y);
+        G.sock.emit('input', I);
         drawShot(shotsCX, I.x, I.y, getAngle(G.p1.x, G.p1.y, I.x, I.y), false);
     });
     e.addEventListener("contextmenu", function (ev) {

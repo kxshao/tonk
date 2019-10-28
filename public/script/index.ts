@@ -1,4 +1,6 @@
 import * as Tanks from "./tank.js";
+import Socket = SocketIOClient.Socket;
+
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
@@ -33,6 +35,7 @@ declare global{
 
 class Game{
 	stopMain;
+	sock:Socket;
 	p1:Tanks.Tank;
 	constructor(){
 		this.p1 = new Tanks.Player();
@@ -81,10 +84,29 @@ $(document).ready(function() {
 	C.height = CANVAS_HEIGHT;
 	X = C.getContext("2d") as CanvasRenderingContext2D;
 
+	document.getElementById("connectBtn").onclick=function(){
+		G.sock = io.connect('/game',{
+			query:{
+				username: $("#connectId").text()
+			}
+		});
+		G.sock.on('connect', function(sock:Socket){
+			$("#connectStatus").text("connected");
+			console.log("socket",sock);
+			init();
+			bindInputEvents(C);
+			G.sock.on('input', function (data) {
+				I.left = data.left;
+				I.right = data.right;
+				I.up = data.up;
+				I.down = data.down;
+			});
+		});
+		$("#connectBtn").remove();
+	};
 
-	bindInputEvents(C);
 
-	init();
+
 });
 
 function init() {
@@ -125,6 +147,7 @@ function bindInputEvents(e:HTMLElement) {
 				window.I.right = true;
 				break;
 		}
+		G.sock.emit('input', I);
 	});
 	window.addEventListener("keyup",function(ev:KeyboardEvent) {
 		switch(ev.key) {
@@ -141,6 +164,7 @@ function bindInputEvents(e:HTMLElement) {
 				window.I.right = false;
 				break;
 		}
+		G.sock.emit('input', I);
 	});
 	e.addEventListener("mousemove",function(ev:MouseEvent) {
 		ev.preventDefault();
@@ -156,6 +180,7 @@ function bindInputEvents(e:HTMLElement) {
 		window.I.y = (ev.clientY - rect.top) * C.height / rect.height;
 
 		$("#txt").text("click "+window.I.x+","+window.I.y);
+		G.sock.emit('input', I);
 
 		drawShot(shotsCX,I.x,I.y,getAngle(G.p1.x,G.p1.y,I.x,I.y),false);
 	});
