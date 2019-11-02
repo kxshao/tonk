@@ -88,6 +88,7 @@ function init() {
         resetAngle(X);
         X.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         tanksCX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        shotsCX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         moveTanks();
         drawTankBase(tanksCX, G.p1.x, G.p1.y, G.p1.color);
         let angle = getAngle(G.p1.x, G.p1.y, I.x, I.y);
@@ -95,6 +96,10 @@ function init() {
         drawTankBase(tanksCX, G.p2.x, G.p2.y, G.p2.color);
         angle = getAngle(G.p2.x, G.p2.y, I.x, I.y);
         drawTankCannon(tanksCX, G.p2.x, G.p2.y, angle, G.p2.color);
+        for (let shot of G.p1.shots) {
+            shot.move();
+            drawShot(shotsCX, shot.x, shot.y, shot.angle, shot.isRocket);
+        }
         X.drawImage(tanksLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         X.drawImage(shotsLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         G.sock.emit('sendPos', JSON.stringify({
@@ -151,7 +156,7 @@ function bindInputEvents(e) {
         window.I.x = (ev.clientX - rect.left) * C.width / rect.width;
         window.I.y = (ev.clientY - rect.top) * C.height / rect.height;
         $("#txt").text("click " + window.I.x + "," + window.I.y);
-        drawShot(shotsCX, I.x, I.y, getAngle(G.p1.x, G.p1.y, I.x, I.y), false);
+        G.p1.shoot(getAngle(G.p1.x, G.p1.y, I.x, I.y));
     });
     e.addEventListener("contextmenu", function (ev) {
         ev.preventDefault();
