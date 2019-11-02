@@ -1,4 +1,5 @@
 import {Shot, ShotSpeed, ShotType} from "./shot.js";
+import {TANK_CANNON_LENGTH} from "./index.js";
 
 enum MoveSpeed{
 	STATIONARY = 0,
@@ -56,7 +57,9 @@ export class Tank {
 		return this;
 	}
 	shoot(angle){
-		this.shots.push(new Shot(this.shotType,this.x,this.y,angle));
+		let x = this.x + TANK_CANNON_LENGTH*Math.cos(angle);
+		let y = this.y + TANK_CANNON_LENGTH*Math.sin(angle);
+		this.shots.push(new Shot(this.shotType,x,y,angle));
 	}
 }
 

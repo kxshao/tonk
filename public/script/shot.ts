@@ -1,5 +1,3 @@
-import {Tank} from "./tank.js";
-
 export enum ShotSpeed{
 	SLOW = 1,
 	FAST = 2
