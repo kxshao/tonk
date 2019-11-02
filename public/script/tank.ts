@@ -1,5 +1,6 @@
 import {Shot, ShotSpeed, ShotType} from "./shot.js";
 import {TANK_CANNON_LENGTH} from "./index.js";
+import {TankHitbox} from "./hitboxes.js";
 
 enum MoveSpeed{
 	STATIONARY = 0,
@@ -43,17 +44,24 @@ export class Tank {
 		this.y=y;
 		return this;
 	}
-	move(u,d,l,r){
+	tryMove(u,d,l,r){
+		let x=this.x;
+		let y=this.y;
 		if(u && !d){
-			this.y -= this.speed;
+			y -= this.speed;
 		} else if(!u && d){
-			this.y += this.speed;
+			y += this.speed;
 		}
 		if(l && !r){
-			this.x -= this.speed;
+			x -= this.speed;
 		} else if(!l && r){
-			this.x += this.speed;
+			x += this.speed;
 		}
+		return new TankHitbox(x,y);
+	}
+	move(newPos){
+		this.x=newPos.x;
+		this.y=newPos.y;
 		return this;
 	}
 	shoot(angle){

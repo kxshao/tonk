@@ -1,4 +1,5 @@
 import * as Tanks from "./tank.js";
+import { Wall } from "./obstacle.js";
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const TANK_WIDTH = 30;
@@ -53,6 +54,7 @@ shotsLayer.height = CANVAS_HEIGHT;
 let shotsCX = shotsLayer.getContext("2d");
 let C;
 let X;
+let tstblock = new Wall(300, 200, 100);
 $(document).ready(function () {
     C = document.getElementById("canvas");
     C.width = CANVAS_WIDTH;
@@ -102,6 +104,7 @@ function init() {
         }
         X.drawImage(tanksLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         X.drawImage(shotsLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        X.fillRect(tstblock.x - tstblock.r, tstblock.y - tstblock.r, tstblock.r * 2, tstblock.r * 2);
         G.sock.emit('sendPos', JSON.stringify({
             "x": G.p1.x,
             "y": G.p1.y,
@@ -163,7 +166,10 @@ function bindInputEvents(e) {
     });
 }
 function moveTanks() {
-    G.p1.move(I.up, I.down, I.left, I.right);
+    let tmp = G.p1.tryMove(I.up, I.down, I.left, I.right);
+    if (!tstblock.collide(tmp)) {
+        G.p1.move(tmp);
+    }
 }
 function drawTankBase(X, x, y, color) {
     x -= TANK_WIDTH_HALF;
