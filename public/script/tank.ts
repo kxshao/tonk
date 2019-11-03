@@ -1,5 +1,4 @@
 import {Shot, ShotSpeed, ShotType} from "./shot.js";
-import {TANK_CANNON_LENGTH} from "./index.js";
 import {TankHitbox} from "./hitboxes.js";
 
 enum MoveSpeed{
@@ -15,6 +14,10 @@ enum Cooldown{
 }
 
 export class Tank {
+	static WIDTH = 30;
+	static HEIGHT = 24;
+	static CANNON_LENGTH = 30;
+
 	color:string;
 	ammo:number;
 	readonly maxAmmo:number;
@@ -65,8 +68,8 @@ export class Tank {
 		return this;
 	}
 	shoot(angle){
-		let x = this.x + TANK_CANNON_LENGTH*Math.cos(angle);
-		let y = this.y + TANK_CANNON_LENGTH*Math.sin(angle);
+		let x = this.x + Tank.CANNON_LENGTH*Math.cos(angle);
+		let y = this.y + Tank.CANNON_LENGTH*Math.sin(angle);
 		this.shots.push(new Shot(this.shotType,x,y,angle));
 	}
 }

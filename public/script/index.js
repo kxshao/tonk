@@ -1,9 +1,9 @@
 import * as Tanks from "./tank.js";
-import { Wall } from "./obstacle.js";
+import { Edge, Wall } from "./obstacle.js";
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-const TANK_WIDTH = 30;
-const TANK_HEIGHT = 24;
+const TANK_WIDTH = Tanks.Tank.WIDTH;
+const TANK_HEIGHT = Tanks.Tank.HEIGHT;
 const TANK_WIDTH_HALF = TANK_WIDTH / 2;
 const TANK_HEIGHT_HALF = TANK_HEIGHT / 2;
 const TANK_MARGIN = 4;
@@ -11,7 +11,7 @@ const TANK_INNER_WIDTH = TANK_WIDTH - 2 * TANK_MARGIN;
 const TANK_INNER_HEIGHT = TANK_HEIGHT - 2 * TANK_MARGIN;
 const TANK_TURRET_LENGTH = TANK_INNER_HEIGHT + TANK_MARGIN / 2;
 const TANK_TURRET_LENGTH_HALF = TANK_TURRET_LENGTH / 2;
-export const TANK_CANNON_LENGTH = TANK_WIDTH;
+const TANK_CANNON_LENGTH = Tanks.Tank.CANNON_LENGTH;
 const TANK_CANNON_THICC = 6;
 const TANK_CANNON_THICC_HALF = TANK_CANNON_THICC / 2;
 const SHOT_LENGTH = 20;
@@ -55,6 +55,7 @@ let shotsCX = shotsLayer.getContext("2d");
 let C;
 let X;
 let tstblock = new Wall(300, 200, 100);
+let edge = new Edge(-20, -20, 800, 600);
 $(document).ready(function () {
     C = document.getElementById("canvas");
     C.width = CANVAS_WIDTH;
@@ -104,7 +105,7 @@ function init() {
         }
         X.drawImage(tanksLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         X.drawImage(shotsLayer, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        X.fillRect(tstblock.x - tstblock.r, tstblock.y - tstblock.r, tstblock.r * 2, tstblock.r * 2);
+        X.fillRect(tstblock.hitbox.x1, tstblock.hitbox.y1, tstblock.hitbox.x2 - tstblock.hitbox.x1, tstblock.hitbox.y2 - tstblock.hitbox.y1);
         G.sock.emit('sendPos', JSON.stringify({
             "x": G.p1.x,
             "y": G.p1.y,
@@ -167,7 +168,7 @@ function bindInputEvents(e) {
 }
 function moveTanks() {
     let tmp = G.p1.tryMove(I.up, I.down, I.left, I.right);
-    if (!tstblock.collide(tmp)) {
+    if (!tstblock.collide(tmp) && !edge.collide(tmp)) {
         G.p1.move(tmp);
     }
 }
