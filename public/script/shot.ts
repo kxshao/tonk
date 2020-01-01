@@ -1,3 +1,5 @@
+import { ShotHitbox } from "./hitboxes.js";
+
 export enum ShotSpeed{
 	SLOW = 1,
 	FAST = 2
@@ -28,9 +30,20 @@ export class Shot {
 		this.bounces = type.maxBounces;
 		this.isRocket = this.speed === ShotSpeed.FAST;
 	}
+	getHitbox(){
+		return new ShotHitbox(this.x, this.y);
+	}
 	move(){
 		this.x += this.speed * Math.cos(this.angle);
 		this.y += this.speed * Math.sin(this.angle);
 		return this;
+	}
+	reflect(normal:number){
+		if(this.angle > Math.PI){
+			this.angle -= Math.PI;
+		} else {
+			this.angle += Math.PI;
+		}
+		this.angle -= 2*(this.angle - normal);
 	}
 }

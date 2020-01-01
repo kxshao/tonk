@@ -139,7 +139,6 @@ function init() {
 		drawTankCannon(tanksCX, G.p2.x,G.p2.y,angle,G.p2.color);
 
 		for(let shot of G.p1.shots){
-			shot.move();
 			drawShot(shotsCX,shot.x,shot.y,shot.angle,shot.isRocket);
 		}
 
@@ -215,6 +214,12 @@ function bindInputEvents(e:HTMLElement) {
 function moveTanks() {
 	let collisionList = [tstblock, edge];
 	G.p1.move(I.up,I.down,I.left,I.right, collisionList);
+	for(let shot of G.p1.shots){
+		shot.move();
+		if(shot.getHitbox().collideRect(tstblock.hitbox)){
+			shot.reflect(tstblock.getNormal(shot));
+		}
+	}
 }
 
 function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {

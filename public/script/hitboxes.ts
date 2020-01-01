@@ -95,8 +95,13 @@ export class ShotHitbox {
 
 	x:number;
 	y:number;
+	sphere:SphereHitbox;
 	constructor(x,y) {
 		this.x=x;
 		this.y=y;
+		this.sphere = new SphereHitbox(this.x, this.y, ShotHitbox.r);
+	}
+	collideRect(o:RectHitbox){
+		return this.sphere.collideRect(o);
 	}
 }

@@ -88,4 +88,29 @@ export class Wall extends Obstacle{
 			}
 		}
 	}
+	getNormal(p:Point){
+		let distX1 = Math.abs(p.x - this.x1);
+		let distX2 = Math.abs(p.x - this.x2);
+		let distY1 = Math.abs(p.y - this.y1);
+		let distY2 = Math.abs(p.y - this.y2);
+		let closestDist = Math.min(distX1,distX2,distY1,distY2);
+		if(closestDist === distX1){
+			//left
+			return Math.PI;
+		}
+		if(closestDist === distX2){
+			//right
+			return 0;
+		}
+		if(closestDist === distY1){
+			//up
+			//angles are CLOCKWISE for consistency with canvas operations
+			return 3*Math.PI/2;
+		}
+		if(closestDist === distY2){
+			//down
+			return Math.PI/2;
+		}
+		throw new Error();
+	}
 }
