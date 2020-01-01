@@ -1,4 +1,5 @@
-import {clip} from "utils.js";
+import {clip, Point} from "./utils.js";
+import { Tank } from "./tank";
 
 interface Hitbox{
 	collidePoint:(x,y)=>boolean;
@@ -28,10 +29,10 @@ export class RectHitbox implements Hitbox{
 	collideSphere(o:SphereHitbox){
 		return o.collideRect(this);
 	}
-	getClosestEdgePoint(x,y){
+	getClosestEdgePoint(p:Point){
 		return {
-			x: clip(x, this.x1, this.x2),
-			y: clip(y, this.y1, this.y2)
+			x: clip(p.x, this.x1, this.x2),
+			y: clip(p.y, this.y1, this.y2)
 		};
 	}
 }
@@ -55,7 +56,7 @@ export class SphereHitbox implements Hitbox{
 		return Math.sqrt(dx*dx+dy*dy) < (this.r + o.r);
 	}
 	collideRect(o:RectHitbox){
-		let nearestPoint = o.getClosestEdgePoint(this.x, this.y)
+		let nearestPoint = o.getClosestEdgePoint(this)
 		return this.collidePoint(nearestPoint.x, nearestPoint.y);
 	}
 }
@@ -70,24 +71,24 @@ export class TankHitbox implements Hitbox{
 	collideRect;
 	collideSphere;
 	getClosestEdgePoint;
-	constructor(x,y) {
+	constructor(x:number, y:number) {
 		this.x=x;
 		this.y=y;
 		this.collidePoint = RectHitbox.prototype.collidePoint.bind(this);
 		this.collideRect = RectHitbox.prototype.collideRect.bind(this);
 		this.collideSphere = RectHitbox.prototype.collideSphere.bind(this);
 		this.getClosestEdgePoint = RectHitbox.prototype.getClosestEdgePoint.bind(this);
-		}
+	}
 	get x1(){return this.x-TankHitbox.rx}
 	get y1(){return this.y-TankHitbox.ry}
 	get x2(){return this.x+TankHitbox.rx}
 	get y2(){return this.y+TankHitbox.ry}
-	nudgeX(v:number){
-		this.x += v;
-	}
-	nudgeY(v:number){
-		this.y += v;
-	}
+	set x1(v:number){this.x = v + TankHitbox.rx;}
+	set y1(v:number){this.y = v + TankHitbox.ry;}
+	set x2(v:number){this.x = v - TankHitbox.rx;}
+	set y2(v:number){this.y = v - TankHitbox.ry;}
+	
+
 }
 export class ShotHitbox {
 	static r = 5;

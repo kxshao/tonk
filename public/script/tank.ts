@@ -1,5 +1,7 @@
 import {Shot, ShotSpeed, ShotType} from "./shot.js";
 import {TankHitbox} from "./hitboxes.js";
+import { Point } from "./utils.js";
+import { Obstacle, Wall, Edge } from "./obstacle.js";
 
 enum MoveSpeed{
 	STATIONARY = 0,
@@ -27,8 +29,9 @@ export class Tank {
 	cooldown:number;
 	shotType:ShotType;
 	shots:Shot[];
-	x:number;
-	y:number;
+	pos:Point;
+	nextPos:TankHitbox;
+
 	protected constructor(color,ammo,mines,speed,cooldown,shotType) {
 		this.color = color;
 		this.maxAmmo = ammo;
@@ -38,15 +41,24 @@ export class Tank {
 		this.mines = this.maxMines;
 		this.cooldown = cooldown;
 		this.shotType = shotType;
-		this.x=0;
-		this.y=0;
 		this.shots = [];
+		this.pos = {
+			x:0,
+			y:0
+		}
+		this.nextPos = null;
 	}
+	get x(){return this.pos.x}
+	get y(){return this.pos.y}
+	set x(v:number){this.pos.x = v}
+	set y(v:number){this.pos.y = v}
+
 	setPos(x,y){
 		this.x=x;
 		this.y=y;
 		return this;
 	}
+
 	tryMove(u,d,l,r){
 		let x=this.x;
 		let y=this.y;
@@ -60,12 +72,29 @@ export class Tank {
 		} else if(!l && r){
 			x += this.speed;
 		}
-		return new TankHitbox(x,y);
+		this.nextPos = new TankHitbox(x,y);
 	}
-	move(newPos){
-		this.x=newPos.x;
-		this.y=newPos.y;
-		return this;
+	resolveCollision(collisionList:any[]){
+		if(!this.nextPos) return;
+
+		for(let o of collisionList){
+			if(o instanceof Edge){
+				if(o.collide(this.nextPos)){
+					o.pushBack(this.nextPos);
+				}
+			} else if(o instanceof Wall){
+				if(this.nextPos.collideRect(o)){
+					o.pushBack(this.nextPos, this.pos);
+				}
+			}
+		}
+
+		this.pos = this.nextPos;
+		this.nextPos = null;
+	}
+	move(u,d,l,r,collisionList){
+		this.tryMove(u, d, l, r);
+		this.resolveCollision(collisionList);
 	}
 	shoot(angle){
 		let x = this.x + Tank.CANNON_LENGTH*Math.cos(angle);

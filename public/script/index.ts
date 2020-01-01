@@ -83,7 +83,7 @@ let C:HTMLCanvasElement;
 let X:CanvasRenderingContext2D;
 
 let tstblock = new Wall(300,200,100);
-let edge = new Edge(-20,-20,800,600);
+let edge = new Edge(0,0,800,600);
 $(document).ready(function() {
 	C = document.getElementById("canvas") as HTMLCanvasElement;
 	C.width = CANVAS_WIDTH;
@@ -213,10 +213,8 @@ function bindInputEvents(e:HTMLElement) {
 }
 
 function moveTanks() {
-	let tmp = G.p1.tryMove(I.up,I.down,I.left,I.right);
-	if(!tstblock.collide(tmp) && !edge.collide(tmp)){
-		G.p1.move(tmp);
-	}
+	let collisionList = [tstblock, edge];
+	G.p1.move(I.up,I.down,I.left,I.right, collisionList);
 }
 
 function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
