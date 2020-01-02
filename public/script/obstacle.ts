@@ -25,13 +25,10 @@ export class Edge extends Obstacle{
 		this.y2=y2;
 	}
 	collide(o: TankHitbox | ShotHitbox) {
-		if(o instanceof TankHitbox){
-			return o.x1 < this.x1 ||
-				o.x2 > this.x2 ||
-				o.y1 < this.y1 ||
-				o.y2 > this.y2;
-		}
-		return false;
+		return o.x1 < this.x1 ||
+			o.x2 > this.x2 ||
+			o.y1 < this.y1 ||
+			o.y2 > this.y2;
 	}
 	pushBack(tankCollision:TankHitbox){
 		if(tankCollision.x1 < this.x1){
@@ -64,27 +61,30 @@ export class Wall extends Obstacle{
 		if(o instanceof TankHitbox){
 			return this.hitbox.collideRect(o);
 		}
+		if(o instanceof ShotHitbox){
+			return this.hitbox.collideSphere(o.sphere);
+		}
 		return false;
 	}
-	pushBack(tankCollision:TankHitbox, fromPos:Point){
+	pushBack(hitbox:TankHitbox|ShotHitbox, fromPos:Point){
 		let distX = Math.abs(fromPos.x - this.x);
 		let distY = Math.abs(fromPos.y - this.y);
 
 		if(distX > distY){
 			if(fromPos.x < this.x){
 				//left
-				tankCollision.x2 = this.x1 - EPS;
+				hitbox.x2 = this.x1 - EPS;
 			} else {
 				//right
-				tankCollision.x1 = this.x2 + EPS;
+				hitbox.x1 = this.x2 + EPS;
 			}
 		} else {
 			if(fromPos.y < this.y){
 				//up
-				tankCollision.y2 = this.y1 - EPS;
+				hitbox.y2 = this.y1 - EPS;
 			} else {
 				//down
-				tankCollision.y1 = this.y2 + EPS;
+				hitbox.y1 = this.y2 + EPS;
 			}
 		}
 	}

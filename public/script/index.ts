@@ -223,10 +223,7 @@ function moveTanks() {
 	let collisionList = [tstblock, edge];
 	G.p1.move(I.up,I.down,I.left,I.right, collisionList);
 	for(let shot of G.p1.shots){
-		shot.move();
-		if(shot.getHitbox().collideRect(tstblock.hitbox)){
-			shot.reflect(tstblock.getNormal(shot));
-		}
+		shot.move(collisionList);
 	}
 }
 

@@ -95,12 +95,20 @@ export class ShotHitbox {
 
 	x:number;
 	y:number;
-	sphere:SphereHitbox;
 	constructor(x,y) {
 		this.x=x;
 		this.y=y;
-		this.sphere = new SphereHitbox(this.x, this.y, ShotHitbox.r);
 	}
+	get x1(){return this.x-ShotHitbox.r}
+	get y1(){return this.y-ShotHitbox.r}
+	get x2(){return this.x+ShotHitbox.r}
+	get y2(){return this.y+ShotHitbox.r}
+	set x1(v:number){this.x = v + ShotHitbox.r;}
+	set y1(v:number){this.y = v + ShotHitbox.r;}
+	set x2(v:number){this.x = v - ShotHitbox.r;}
+	set y2(v:number){this.y = v - ShotHitbox.r;}
+	get sphere(){return new SphereHitbox(this.x, this.y, ShotHitbox.r)}
+
 	collideRect(o:RectHitbox){
 		return this.sphere.collideRect(o);
 	}
