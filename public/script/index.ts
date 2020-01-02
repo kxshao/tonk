@@ -168,15 +168,19 @@ function bindInputEvents(e:HTMLElement) {
 	window.addEventListener("keydown",function(ev:KeyboardEvent) {
 		switch(ev.key) {
 			case KEY_UP:
+				ev.preventDefault();
 				window.I.up = true;
 				break;
 			case KEY_DOWN:
+				ev.preventDefault();
 				window.I.down = true;
 				break;
 			case KEY_LEFT:
+				ev.preventDefault();
 				window.I.left = true;
 				break;
 			case KEY_RIGHT:
+				ev.preventDefault();
 				window.I.right = true;
 				break;
 		}
