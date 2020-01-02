@@ -30,19 +30,45 @@ export class Edge extends Obstacle{
 			o.y1 < this.y1 ||
 			o.y2 > this.y2;
 	}
-	pushBack(tankCollision:TankHitbox){
-		if(tankCollision.x1 < this.x1){
-			tankCollision.x1 = this.x1 + EPS;
+	pushBack(hitbox:TankHitbox | ShotHitbox){
+		if(hitbox.x1 < this.x1){
+			hitbox.x1 = this.x1 + EPS;
 		}
-		if(tankCollision.x2 > this.x2){
-			tankCollision.x2 = this.x2 - EPS;
+		if(hitbox.x2 > this.x2){
+			hitbox.x2 = this.x2 - EPS;
 		}
-		if(tankCollision.y1 < this.y1){
-			tankCollision.y1 = this.y1 + EPS;
+		if(hitbox.y1 < this.y1){
+			hitbox.y1 = this.y1 + EPS;
 		}
-		if(tankCollision.y2 > this.y2){
-			tankCollision.y2 = this.y2 - EPS;
+		if(hitbox.y2 > this.y2){
+			hitbox.y2 = this.y2 - EPS;
 		}
+	}
+	getNormal(p:Point){
+		let distX1 = Math.abs(p.x - this.x1);
+		let distX2 = Math.abs(p.x - this.x2);
+		let distY1 = Math.abs(p.y - this.y1);
+		let distY2 = Math.abs(p.y - this.y2);
+		let closestDist = Math.min(distX1,distX2,distY1,distY2);
+		//edge reflects inward, unlike blocks which reflect outward
+		if(closestDist === distX1){
+			//hit left, go right
+			return 0;
+		}
+		if(closestDist === distX2){
+			//hit right, go left
+			return Math.PI;
+		}
+		if(closestDist === distY1){
+			//hit top, go down
+			//angles are CLOCKWISE for consistency with canvas operations
+			return Math.PI/2;
+		}
+		if(closestDist === distY2){
+			//hit bottom, go up
+			return 3*Math.PI/2;
+		}
+		throw new Error();
 	}
 }
 

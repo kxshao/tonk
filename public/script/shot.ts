@@ -50,7 +50,8 @@ export class Shot {
 		for(let o of collisionList){
 			if(o instanceof Edge){
 				if(o.collide(this.nextPos)){
-					//
+					this.reflect(o.getNormal(this.pos));
+					o.pushBack(this.nextPos);
 				}
 			} else if(o instanceof Wall){
 				if(o.collide(this.nextPos)){
