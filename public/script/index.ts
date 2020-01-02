@@ -78,6 +78,10 @@ let shotsLayer = document.createElement('canvas');
 shotsLayer.width = CANVAS_WIDTH;
 shotsLayer.height = CANVAS_HEIGHT;
 let shotsCX = shotsLayer.getContext("2d") as CanvasRenderingContext2D;
+let hitboxLayer = document.createElement('canvas');
+hitboxLayer.width = CANVAS_WIDTH;
+hitboxLayer.height = CANVAS_HEIGHT;
+let hitboxCX = hitboxLayer.getContext("2d") as CanvasRenderingContext2D;
 
 let C:HTMLCanvasElement;
 let X:CanvasRenderingContext2D;
@@ -128,6 +132,7 @@ function init() {
 		X.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		tanksCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		shotsCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+		hitboxCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
 		moveTanks();
 		drawTankBase(tanksCX,G.p1.x,G.p1.y,G.p1.color);
@@ -140,12 +145,15 @@ function init() {
 
 		for(let shot of G.p1.shots){
 			drawShot(shotsCX,shot.x,shot.y,shot.angle,shot.isRocket);
+			//shot hitbox
+			drawCircle(hitboxCX, shot.x, shot.y, 5, "rgb(230,200,0)");
 		}
 
 		X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		X.drawImage(shotsLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		X.fillRect(tstblock.hitbox.x1,tstblock.hitbox.y1,
 			tstblock.hitbox.x2-tstblock.hitbox.x1,tstblock.hitbox.y2-tstblock.hitbox.y1);
+		X.drawImage(hitboxLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
 		G.sock.emit('sendPos', JSON.stringify({
 			"x": G.p1.x,
@@ -220,6 +228,16 @@ function moveTanks() {
 			shot.reflect(tstblock.getNormal(shot));
 		}
 	}
+}
+
+function drawCircle(X: CanvasRenderingContext2D, x, y, r, color){
+	X.beginPath();
+	//move to right edge of circle to avoid extra path from centre to edge
+	X.moveTo(x+r, y);
+	X.arc(x, y, r, 0, 2*Math.PI);
+	X.fillStyle = color;
+	X.fill();
+	resetAngle(X);
 }
 
 function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
