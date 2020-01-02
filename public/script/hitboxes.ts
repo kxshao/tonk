@@ -1,8 +1,8 @@
-import {clip, Point} from "./utils.js";
+import {clip, Point, NormalizedVector, Vector} from "./utils.js";
 import { Tank } from "./tank";
 
 interface Hitbox{
-	collidePoint:(x,y)=>boolean;
+	collidePoint:(p:Point)=>boolean;
 	collideSphere:(o:SphereHitbox)=>boolean;
 	collideRect:(o:RectHitbox)=>boolean;
 }
@@ -13,14 +13,14 @@ export class RectHitbox implements Hitbox{
 	x2:number;
 	y2:number;
 	constructor(x1,y1,x2,y2){
-		this.x1=x1;
-		this.y1=y1;
-		this.x2=x2;
-		this.y2=y2;
+		this.x1=Math.min(x1,x2);
+		this.y1=Math.min(y1,y2);
+		this.x2=Math.max(x1,x2);
+		this.y2=Math.max(y1,y2);
 	}
-	collidePoint(x,y){
-		return (this.x1 <= x && this.x2 >= x) &&
-			(this.y1 <= y && this.y2 >= y)
+	collidePoint(p:Point){
+		return (this.x1 <= p.x && this.x2 >= p.x) &&
+			(this.y1 <= p.y && this.y2 >= p.y)
 	}
 	collideRect(o:RectHitbox){
 		return (this.x1 <= o.x2 && this.x2 >= o.x1) &&
@@ -45,9 +45,9 @@ export class SphereHitbox implements Hitbox{
 		this.y=y;
 		this.r=r;
 	}
-	collidePoint(x,y){
-		let dx = x-this.x;
-		let dy = y-this.y;
+	collidePoint(p:Point){
+		let dx = p.x-this.x;
+		let dy = p.y-this.y;
 		return Math.sqrt(dx*dx+dy*dy) < this.r;
 	}
 	collideSphere(o:SphereHitbox){
@@ -57,7 +57,84 @@ export class SphereHitbox implements Hitbox{
 	}
 	collideRect(o:RectHitbox){
 		let nearestPoint = o.getClosestEdgePoint(this)
-		return this.collidePoint(nearestPoint.x, nearestPoint.y);
+		return this.collidePoint(nearestPoint);
+	}
+}
+
+export class CapsuleHitbox implements Hitbox{
+	p1:Point;
+	p2:Point;
+	r:number;
+	direction:NormalizedVector;
+	length:number;
+	boundingBox:RectHitbox;
+	constructor(p1:Point, p2:Point, r:number){
+		this.p1 = p1;
+		this.p2 = p2;
+		this.r = r;
+		this.direction = Vector.getDirection(p2, p1);
+		this.length = this.direction.mag;
+		this.boundingBox = new RectHitbox(p1.x, p1.y, p2.x, p2.y);
+		this.boundingBox.x1 -= r;
+		this.boundingBox.y1 -= r;
+		this.boundingBox.x2 += r;
+		this.boundingBox.y2 += r;
+	}
+
+	collidePoint(p:Point){
+		let p1_to_p = Vector.subtract(p, this.p1);
+		let d = Vector.dot(p1_to_p, this.direction);
+		// let perpendicularPoint = Vector.add(this.p1, this.direction.scale(d));
+		let clippedDist = clip(d, 0, this.length);
+		let closestPoint = Vector.add(this.p1, this.direction.scale(clippedDist));
+		return new SphereHitbox(closestPoint.x, closestPoint.y, this.r).collidePoint(p);
+	}
+	collideSphere(o:SphereHitbox){
+		let p1_to_p = Vector.subtract(o, this.p1);
+		let d = Vector.dot(p1_to_p, this.direction);
+		// let perpendicularPoint = Vector.add(this.p1, this.direction.scale(d));
+		let clippedDist = clip(d, 0, this.length);
+		let closestPoint = Vector.add(this.p1, this.direction.scale(clippedDist));
+		return new SphereHitbox(closestPoint.x, closestPoint.y, this.r).collideSphere(o);
+	}
+	collideRect(o:RectHitbox){
+		//quick broad phase check
+		if(!this.boundingBox.collideRect(o)){
+			return false;
+		}
+		//check if either end of capsule collides with box edge
+		if(new SphereHitbox(this.p1.x, this.p1.y, this.r).collideRect(o)){
+			return true;
+		}
+		if(new SphereHitbox(this.p2.x, this.p2.y, this.r).collideRect(o)){
+			return true;
+		}
+		//find which vertex is closest
+		let midpoint = {
+			x: (o.x1+o.x2)/2,
+			y: (o.y1+o.y2)/2
+		};
+		let p1_to_p = Vector.subtract(midpoint, this.p1);
+		let d = Vector.dot(p1_to_p, this.direction);
+		let clippedDist = clip(d, 0, this.length);
+		let closestPointToBoxCentre = Vector.add(this.p1, this.direction.scale(clippedDist));
+		let dx1 = Math.abs(o.x1-closestPointToBoxCentre.x);
+		let dx2 = Math.abs(o.x2-closestPointToBoxCentre.x);
+		let dy1 = Math.abs(o.y1-closestPointToBoxCentre.y);
+		let dy2 = Math.abs(o.y2-closestPointToBoxCentre.y);
+		let closestVertex = {
+			x: dx1 < dx2 ? o.x1 : o.x2,
+			y: dy1 < dy2 ? o.y1 : o.y2
+		};
+		//check if capsule collides with box vertex
+		p1_to_p = Vector.subtract(closestVertex, this.p1);
+		d = Vector.dot(p1_to_p, this.direction);
+		clippedDist = clip(d, 0, this.length);
+		let closestPointToVertex = Vector.add(this.p1, this.direction.scale(clippedDist));
+		if(new SphereHitbox(closestPointToVertex.x, closestPointToVertex.y, this.r).collidePoint(closestVertex)){
+			return true;
+		}
+		return false;
 	}
 }
 
