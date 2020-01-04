@@ -17,6 +17,9 @@ export class Vector implements Point{
 		this.y *= s;
 		return this;
 	}
+	static scale(v:Vector, s:number){
+		return new Vector(v.x * s, v.y * s);
+	}
 	static add(v1:Point, v2:Vector){
 		return new Vector(v1.x + v2.x, v1.y + v2.y);
 	}
@@ -25,6 +28,10 @@ export class Vector implements Point{
 	}
 	static getDirection(toPoint:Point, fromPoint:Point){
 		return new NormalizedVector(toPoint.x - fromPoint.x, toPoint.y - fromPoint.y);
+	}
+	static getNormal(v:Vector){
+		//90 degrees clockwise
+		return new Vector(-v.y, v.x);
 	}
 	static dot(v1:Vector, v2:Vector):number{
 		return v1.x * v2.x + v1.y * v2.y;

@@ -1,0 +1,67 @@
+<html lang="">
+
+<head>
+	<title>Tonk</title>
+	<meta charset="UTF-8">
+	<script
+			src="https://code.jquery.com/jquery-3.4.1.min.js"
+			integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+			crossorigin="anonymous">
+	</script>
+	<script type="module" src="script/collision_test.js"></script>
+</head>
+
+<style>
+.selected{
+	border: 1px solid red !important;
+}
+.option{
+	border: 1px solid gray;
+}
+</style>
+
+<body>
+	<div id="container" style="display: table;">
+		<div style="display: table-row;">
+			<div style="display: table-cell;">
+				<canvas id="canvas" style="border: 1px solid crimson; display:table-cell;"></canvas>
+			</div>
+			<div style="width:200px; display: table-cell; border: 1px solid blueviolet; vertical-align: top;">
+				<div style="display: table; width: 100%; background-color: blanchedalmond;">
+					<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+						<h2>Commands</h2>
+						<div style="display: grid;grid-template-columns: auto auto; grid-gap: 5px; padding: 2px;">
+							<button id="pause">start/pause</button>
+							<button id="nextframe">next frame</button>
+							<button id="clear">clear canvas</button>
+						</div>
+					</div>
+					<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+						<h2>Choose object</h2>
+						<div id="choose_object" style="display: grid;grid-template-columns: auto auto; grid-gap: 5px; padding: 2px;">
+							<div class="option">point</div>
+							<div class="option">sphere</div>
+							<div class="option">box</div>
+							<div class="option">capsule</div>
+						</div>
+					</div>
+					<div id="choose_action" style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+						<h2>Choose action</h2>
+						<div style="display: grid;grid-template-columns: auto auto; grid-gap: 5px; padding: 2px;">
+							<div class="option">create</div>
+							<div class="option">select</div>
+							<div class="option">move</div>
+							<div class="option">test</div>
+						</div>
+					</div>
+					<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+						<h2>Coordinates</h2>
+						<div id="mousecoord"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
