@@ -28,6 +28,8 @@ let selectedObjType = "point";
 let selectedAction = "create";
 
 let tmpPoint:Point = null;
+let customSize = 10;
+let customColor = "rgb(255,0,0)";
 
 $(document).ready(function() {
 	C = document.getElementById("canvas") as HTMLCanvasElement;
@@ -70,7 +72,19 @@ $(document).ready(function() {
 		$(e.target).addClass("selected");
 		selectedAction = e.target.innerText;
 	});
-
+	$("#size_input").change(function(e){
+		let v = parseFloat(e.target.value);
+		if(v > 0){
+			customSize = v;
+		} else {
+			alert("size input error");
+		}
+	});
+	$("#color_input").change(function(e){
+		customColor = e.target.value;
+	});
+	$("#size_input").val(10);
+	$("#color_input").val("#FF0000");
 	init();
 });
 
@@ -114,14 +128,13 @@ function bindInputEvents(e:HTMLElement) {
 		$("#mousecoord").text("click "+Math.trunc(x)+","+Math.trunc(y));
 
 		if(selectedAction === "create"){
-			let color = "rgb(255, 0, 0)"
-			X.fillStyle = color;
+			X.fillStyle = customColor;
 			switch(selectedObjType){
 				case "point":
 					X.fillRect(x-1, y-1, 2, 2);
 					break;
 				case "sphere":
-					drawCircle(X, x, y, 20, color);
+					drawCircle(X, x, y, customSize, customColor);
 					break;
 				case "box":
 					if(tmpPoint){
@@ -141,24 +154,24 @@ function bindInputEvents(e:HTMLElement) {
 					}
 					break;
 				case "capsule":
+					let r = customSize;
 					if(tmpPoint){
-						let r = 10;
-						drawCircle(X, x, y, r, color);
+						drawCircle(X, x, y, r, customColor);
 						let direction = Vector.getDirection({x:x,y:y}, tmpPoint);
 						let normal = Vector.getNormal(direction);
 						let p1_1 = Vector.add(tmpPoint, Vector.scale(normal,r));
 						let p1_2 = Vector.add(tmpPoint, Vector.scale(normal,-r));
 						let p2_1 = Vector.add(p1_1, Vector.scale(direction,direction.mag));
 						let p2_2 = Vector.add(p1_2, Vector.scale(direction,direction.mag));
-						drawLine(X, p1_1.x, p1_1.y, p2_1.x, p2_1.y, color);
-						drawLine(X, p1_2.x, p1_2.y, p2_2.x, p2_2.y, color);
+						drawLine(X, p1_1.x, p1_1.y, p2_1.x, p2_1.y, customColor);
+						drawLine(X, p1_2.x, p1_2.y, p2_2.x, p2_2.y, customColor);
 						tmpPoint = null;
 					} else {
 						tmpPoint = {
 							x:x,
 							y:y
 						};
-						drawCircle(X, x, y, 10, color);
+						drawCircle(X, x, y, r, customColor);
 					}
 					break;
 			}
