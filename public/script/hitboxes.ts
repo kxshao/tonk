@@ -1,10 +1,49 @@
-import {clip, Point, NormalizedVector, Vector} from "./utils.js";
+import {clip, Point, NormalizedVector, Vector, EPS} from "./utils.js";
 import { Tank } from "./tank";
 
-interface Hitbox{
+export abstract class Hitbox{
 	collidePoint:(p:Point)=>boolean;
 	collideSphere:(o:SphereHitbox)=>boolean;
 	collideRect:(o:RectHitbox)=>boolean;
+	collideCaps:(o:CapsuleHitbox)=>boolean;
+	static collide(h1:Hitbox, h2:Hitbox){
+		if(h2 instanceof PointHitbox){
+			return h1.collidePoint(h2);
+		} else if (h2 instanceof SphereHitbox){
+			return h1.collideSphere(h2);
+		} else if (h2 instanceof RectHitbox){
+			return h1.collideRect(h2);
+		} else if (h2 instanceof CapsuleHitbox){
+			return h1.collideCaps(h2);
+		}
+		return false;
+	}
+}
+
+export class PointHitbox implements Point, Hitbox{
+	x:number;
+	y:number;
+	constructor(x,y){
+		this.x=x;
+		this.y=y;
+	}
+	collidePoint(p:Point){
+		let dx = Math.abs(p.x-this.x);
+		let dy = Math.abs(p.y-this.y);
+		return dx < EPS && dy < EPS;
+	}
+	collideSphere(o:SphereHitbox){
+		let dx = o.x-this.x;
+		let dy = o.y-this.y;
+		return Math.sqrt(dx*dx+dy*dy) < o.r;
+	}
+	collideRect(o:RectHitbox){
+		return (o.x1 <= this.x && o.x2 >= this.x) &&
+			(o.y1 <= this.y && o.y2 >= this.y)
+	}
+	collideCaps(o:CapsuleHitbox){
+		return o.collidePoint(this);
+	}
 }
 
 export class RectHitbox implements Hitbox{
@@ -27,6 +66,9 @@ export class RectHitbox implements Hitbox{
 			(this.y1 <= o.y2 && this.y2 >= o.y1)
 	}
 	collideSphere(o:SphereHitbox){
+		return o.collideRect(this);
+	}
+	collideCaps(o:CapsuleHitbox){
 		return o.collideRect(this);
 	}
 	getClosestEdgePoint(p:Point){
@@ -59,6 +101,9 @@ export class SphereHitbox implements Hitbox{
 		let nearestPoint = o.getClosestEdgePoint(this)
 		return this.collidePoint(nearestPoint);
 	}
+	collideCaps(o:CapsuleHitbox){
+		return o.collideSphere(this);
+	}
 }
 
 export class CapsuleHitbox implements Hitbox{
@@ -84,17 +129,15 @@ export class CapsuleHitbox implements Hitbox{
 	collidePoint(p:Point){
 		let p1_to_p = Vector.subtract(p, this.p1);
 		let d = Vector.dot(p1_to_p, this.direction);
-		// let perpendicularPoint = Vector.add(this.p1, this.direction.scale(d));
 		let clippedDist = clip(d, 0, this.length);
-		let closestPoint = Vector.add(this.p1, this.direction.scale(clippedDist));
+		let closestPoint = Vector.add(this.p1, Vector.scale(this.direction,clippedDist));
 		return new SphereHitbox(closestPoint.x, closestPoint.y, this.r).collidePoint(p);
 	}
 	collideSphere(o:SphereHitbox){
 		let p1_to_p = Vector.subtract(o, this.p1);
 		let d = Vector.dot(p1_to_p, this.direction);
-		// let perpendicularPoint = Vector.add(this.p1, this.direction.scale(d));
 		let clippedDist = clip(d, 0, this.length);
-		let closestPoint = Vector.add(this.p1, this.direction.scale(clippedDist));
+		let closestPoint = Vector.add(this.p1, Vector.scale(this.direction,clippedDist));
 		return new SphereHitbox(closestPoint.x, closestPoint.y, this.r).collideSphere(o);
 	}
 	collideRect(o:RectHitbox){
@@ -117,7 +160,7 @@ export class CapsuleHitbox implements Hitbox{
 		let p1_to_p = Vector.subtract(midpoint, this.p1);
 		let d = Vector.dot(p1_to_p, this.direction);
 		let clippedDist = clip(d, 0, this.length);
-		let closestPointToBoxCentre = Vector.add(this.p1, this.direction.scale(clippedDist));
+		let closestPointToBoxCentre = Vector.add(this.p1, Vector.scale(this.direction,clippedDist));
 		let dx1 = Math.abs(o.x1-closestPointToBoxCentre.x);
 		let dx2 = Math.abs(o.x2-closestPointToBoxCentre.x);
 		let dy1 = Math.abs(o.y1-closestPointToBoxCentre.y);
@@ -130,11 +173,14 @@ export class CapsuleHitbox implements Hitbox{
 		p1_to_p = Vector.subtract(closestVertex, this.p1);
 		d = Vector.dot(p1_to_p, this.direction);
 		clippedDist = clip(d, 0, this.length);
-		let closestPointToVertex = Vector.add(this.p1, this.direction.scale(clippedDist));
+		let closestPointToVertex = Vector.add(this.p1, Vector.scale(this.direction,clippedDist));
 		if(new SphereHitbox(closestPointToVertex.x, closestPointToVertex.y, this.r).collidePoint(closestVertex)){
 			return true;
 		}
 		return false;
+	}
+	collideCaps(o:CapsuleHitbox){
+		return false;//todo
 	}
 }
 
@@ -147,6 +193,7 @@ export class TankHitbox implements Hitbox{
 	collidePoint;
 	collideRect;
 	collideSphere;
+	collideCaps;
 	getClosestEdgePoint;
 	constructor(x:number, y:number) {
 		this.x=x;
@@ -154,6 +201,7 @@ export class TankHitbox implements Hitbox{
 		this.collidePoint = RectHitbox.prototype.collidePoint.bind(this);
 		this.collideRect = RectHitbox.prototype.collideRect.bind(this);
 		this.collideSphere = RectHitbox.prototype.collideSphere.bind(this);
+		this.collideCaps = RectHitbox.prototype.collideCaps.bind(this);
 		this.getClosestEdgePoint = RectHitbox.prototype.getClosestEdgePoint.bind(this);
 	}
 	get x1(){return this.x-TankHitbox.rx}

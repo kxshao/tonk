@@ -12,11 +12,6 @@ export class Vector implements Point{
 		this.x = x;
 		this.y = y;
 	}
-	scale(s:number){
-		this.x *= s;
-		this.y *= s;
-		return this;
-	}
 	static scale(v:Vector, s:number){
 		return new Vector(v.x * s, v.y * s);
 	}

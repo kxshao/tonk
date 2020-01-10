@@ -1,4 +1,4 @@
-import {RectHitbox} from "./hitboxes.js";
+import {RectHitbox, PointHitbox, SphereHitbox, CapsuleHitbox, Hitbox} from "./hitboxes.js";
 import { Point, Vector } from "./utils.js";
 
 
@@ -22,7 +22,7 @@ let L2CX = layer2.getContext("2d") as CanvasRenderingContext2D;
 let C:HTMLCanvasElement;
 let X:CanvasRenderingContext2D;
 let animationLoop = 0;
-let objList = [];
+let objList:CollisionObject[] = [];
 
 let selectedObjType = "point";
 let selectedAction = "create";
@@ -30,6 +30,31 @@ let selectedAction = "create";
 let tmpPoint:Point = null;
 let customSize = 10;
 let customColor = "rgb(255,0,0)";
+
+class CollisionObject{
+	hitbox:Hitbox;
+	baseColor;
+	collisions:CollisionObject[];
+	constructor(hitbox, color){
+		this.hitbox = hitbox;
+		this.baseColor = color;
+		this.collisions = [];
+	}
+	getColor(){
+		if(this.collisions.length){
+			return "#FF00FF";
+		}
+		return this.baseColor;
+	}
+	collide(objects:CollisionObject[]){
+		for(const o of objects){
+			if(Hitbox.collide(this.hitbox,o.hitbox)){
+				this.collisions.push(o);
+				o.collisions.push(this);
+			}
+		}
+	}
+}
 
 $(document).ready(function() {
 	C = document.getElementById("canvas") as HTMLCanvasElement;
@@ -97,9 +122,20 @@ function main(cont?) {
 	L1CX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 	L2CX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
-	for (let o of objList) {
-		if(o instanceof RectHitbox){
-			X.fillRect(o.x1, o.y1, o.x2-o.x1, o.y2-o.y1);
+	for (let i = 0; i < objList.length; i++) {
+		let o = objList[i];
+		o.collide(objList.slice(i+1));
+		let h = o.hitbox;
+		if(h instanceof PointHitbox){
+			X.fillStyle = o.getColor();
+			X.fillRect(h.x-1, h.y-1, 2, 2);
+		} else if(h instanceof RectHitbox){
+			X.fillStyle = o.getColor();
+			X.fillRect(h.x1, h.y1, h.x2-h.x1, h.y2-h.y1);
+		} else if (h instanceof SphereHitbox){
+			drawCircle(X, h.x, h.y, h.r, o.getColor());
+		} else if (h instanceof CapsuleHitbox){
+			drawCapsule(X, h, o.getColor());
 		}
 	}
 	
@@ -108,7 +144,7 @@ function main(cont?) {
 }
 
 function init() {
-	objList.push(new RectHitbox(100,200,300,500));
+	;
 }
 
 function bindInputEvents(e:HTMLElement) {
@@ -131,13 +167,25 @@ function bindInputEvents(e:HTMLElement) {
 			X.fillStyle = customColor;
 			switch(selectedObjType){
 				case "point":
+					objList.push(new CollisionObject(
+						new PointHitbox(x,y),
+						customColor
+					));
 					X.fillRect(x-1, y-1, 2, 2);
 					break;
 				case "sphere":
+					objList.push(new CollisionObject(
+						new SphereHitbox(x,y,customSize),
+						customColor
+					));
 					drawCircle(X, x, y, customSize, customColor);
 					break;
 				case "box":
 					if(tmpPoint){
+						objList.push(new CollisionObject(
+							new RectHitbox(tmpPoint.x, tmpPoint.y, x, y),
+							customColor
+						));
 						let p = {
 							x:Math.min(tmpPoint.x, x),
 							y:Math.min(tmpPoint.y, y),
@@ -156,6 +204,10 @@ function bindInputEvents(e:HTMLElement) {
 				case "capsule":
 					let r = customSize;
 					if(tmpPoint){
+						objList.push(new CollisionObject(
+							new CapsuleHitbox(tmpPoint, {x:x,y:y}, customSize),
+							customColor
+						));
 						drawCircle(X, x, y, r, customColor);
 						let direction = Vector.getDirection({x:x,y:y}, tmpPoint);
 						let normal = Vector.getNormal(direction);
@@ -199,6 +251,18 @@ function drawCircle(X: CanvasRenderingContext2D, x, y, r, color){
 	X.fillStyle = color;
 	X.fill();
 	resetAngle(X);
+}
+
+function drawCapsule(X: CanvasRenderingContext2D, caps:CapsuleHitbox, color){
+	drawCircle(X, caps.p1.x, caps.p1.y, caps.r, color);
+	drawCircle(X, caps.p2.x, caps.p2.y, caps.r, color);
+	let normal = Vector.getNormal(caps.direction);
+	let p1_1 = Vector.add(caps.p1, Vector.scale(normal,caps.r));
+	let p1_2 = Vector.add(caps.p1, Vector.scale(normal,-caps.r));
+	let p2_1 = Vector.add(caps.p2, Vector.scale(normal,caps.r));
+	let p2_2 = Vector.add(caps.p2, Vector.scale(normal,-caps.r));
+	drawLine(X, p1_1.x, p1_1.y, p2_1.x, p2_1.y, color);
+	drawLine(X, p1_2.x, p1_2.y, p2_2.x, p2_2.y, color);
 }
 
 function rotate(X: CanvasRenderingContext2D, x, y, angle) {
