@@ -20,6 +20,14 @@ export abstract class Hitbox{
 	}
 }
 
+export class NullHitbox implements Hitbox{
+	constructor() {}
+	collidePoint(p:Point){return false;}
+	collideSphere(o:SphereHitbox){return false;}
+	collideRect(o:RectHitbox){return false;}
+	collideCaps(o:CapsuleHitbox){return false;}
+}
+
 export class PointHitbox implements Point, Hitbox{
 	x:number;
 	y:number;
