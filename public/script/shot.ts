@@ -28,7 +28,7 @@ export class Shot {
 		this.pos = {
 			y:y,
 			x:x
-		}
+		};
 		this.angle = angle;
 		this.speed = type.speed;
 		this.bounces = type.maxBounces;

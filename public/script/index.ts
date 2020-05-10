@@ -110,6 +110,7 @@ $(document).ready(function() {
 				data = JSON.parse(data);
 				if(G.id !== data.id){
 					G.p2.setPos(data.x, data.y);
+					G.p2.angle = data.cannon_dir;
 				}
 			});
 		});
@@ -136,12 +137,11 @@ function init() {
 
 		moveTanks();
 		drawTankBase(tanksCX,G.p1.x,G.p1.y,G.p1.color);
-		let angle = getAngle(G.p1.x,G.p1.y,I.x,I.y);
-		drawTankCannon(tanksCX, G.p1.x,G.p1.y,angle,G.p1.color);
+		G.p1.angle = getAngle(G.p1.x,G.p1.y,I.x,I.y);
+		drawTankCannon(tanksCX, G.p1.x,G.p1.y,G.p1.angle,G.p1.color);
 
 		drawTankBase(tanksCX,G.p2.x,G.p2.y,G.p2.color);
-		angle = getAngle(G.p2.x,G.p2.y,I.x,I.y);
-		drawTankCannon(tanksCX, G.p2.x,G.p2.y,angle,G.p2.color);
+		drawTankCannon(tanksCX, G.p2.x,G.p2.y,G.p2.angle,G.p2.color);
 
 		for(let shot of G.p1.shots){
 			drawShot(shotsCX,shot.x,shot.y,shot.angle,shot.isRocket);
@@ -156,9 +156,10 @@ function init() {
 		X.drawImage(hitboxLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
 		G.sock.emit('sendPos', JSON.stringify({
+			"id": G.id,
 			"x": G.p1.x,
 			"y": G.p1.y,
-			"id": G.id
+			"cannon_dir":G.p1.angle
 		}));
 	}
 	main(); // Start the cycle

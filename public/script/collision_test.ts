@@ -98,6 +98,7 @@ $(document).ready(function() {
 		selectedAction = e.target.innerText;
 	});
 	$("#size_input").change(function(e){
+		// @ts-ignore
 		let v = parseFloat(e.target.value);
 		if(v > 0){
 			customSize = v;
@@ -106,6 +107,7 @@ $(document).ready(function() {
 		}
 	});
 	$("#color_input").change(function(e){
+		// @ts-ignore
 		customColor = e.target.value;
 	});
 	$("#size_input").val(10);

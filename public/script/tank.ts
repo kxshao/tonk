@@ -30,6 +30,7 @@ export class Tank {
 	shotType:ShotType;
 	shots:Shot[];
 	pos:Point;
+	angle:number;
 	nextPos:TankHitbox;
 
 	protected constructor(color,ammo,mines,speed,cooldown,shotType) {
@@ -45,7 +46,8 @@ export class Tank {
 		this.pos = {
 			x:0,
 			y:0
-		}
+		};
+		this.angle = 0;
 		this.nextPos = null;
 	}
 	get x(){return this.pos.x}
