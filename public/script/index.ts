@@ -1,6 +1,7 @@
 import * as Tanks from "./tank.js";
 import Socket = SocketIOClient.Socket;
 import {Edge, Wall} from "./obstacle.js";
+import {TankKilledEvent} from "./exceptions.js";
 
 
 const CANVAS_WIDTH = 800;
@@ -225,10 +226,19 @@ function bindInputEvents(e:HTMLElement) {
 }
 
 function moveTanks() {
-	let collisionList = [tstblock, edge];
+	let collisionList = [tstblock, edge, G.p1, G.p2];
 	G.p1.move(I.up,I.down,I.left,I.right, collisionList);
 	for(let shot of G.p1.shots){
-		shot.move(collisionList);
+		try {
+			shot.move(collisionList);
+		}catch (e) {
+			if (e instanceof TankKilledEvent){
+				//todo - kill animation or something here
+				X.fillStyle = e.killer.color;
+				X.fillText("+1", e.killer.x, e.killer.y, 10);
+				X.fillText("killed", e.killed.x, e.killed.y, 10);
+			}
+		}
 	}
 }
 

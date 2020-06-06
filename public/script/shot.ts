@@ -1,6 +1,8 @@
 import { ShotHitbox } from "./hitboxes.js";
 import { Point } from "./utils.js";
 import { Edge, Wall } from "./obstacle.js";
+import {ShotExpiredEvent} from "./exceptions.js";
+import {Tank} from "./tank.js";
 
 export enum ShotSpeed{
 	SLOW = 1,
@@ -17,18 +19,17 @@ export class ShotType {
 }
 
 export class Shot {
+	owner:Tank;
 	angle:number;
 	speed:number;
 	bounces:number;
 	isRocket:boolean;
-	pos:Point;
+	pos:ShotHitbox;
 	nextPos:ShotHitbox;
 
-	constructor(type:ShotType,x,y,angle){
-		this.pos = {
-			y:y,
-			x:x
-		};
+	constructor(owner:Tank,type:ShotType,x,y,angle){
+		this.owner = owner;
+		this.pos = new ShotHitbox(x,y);
 		this.angle = angle;
 		this.speed = type.speed;
 		this.bounces = type.maxBounces;
@@ -50,13 +51,33 @@ export class Shot {
 		for(let o of collisionList){
 			if(o instanceof Edge){
 				if(o.collide(this.nextPos)){
-					this.reflect(o.getNormal(this.pos));
-					o.pushBack(this.nextPos);
+					try{
+						this.reflect(o.getNormal(this.pos));
+						o.pushBack(this.nextPos);
+					} catch (e) {
+						if(e instanceof ShotExpiredEvent){
+							this.destroy();
+						}
+					}
 				}
 			} else if(o instanceof Wall){
 				if(o.collide(this.nextPos)){
-					this.reflect(o.getNormal(this.pos));
-					o.pushBack(this.nextPos, this.pos);
+					try{
+						this.reflect(o.getNormal(this.pos));
+						o.pushBack(this.nextPos, this.pos);
+					} catch (e) {
+						if(e instanceof ShotExpiredEvent){
+							this.destroy();
+						}
+					}
+				}
+			} else if(o instanceof Tank){
+				if(o.collide(this.nextPos)){
+					try{
+						this.kill(o);
+					}finally {
+						this.destroy();
+					}
 				}
 			}
 		}
@@ -75,5 +96,13 @@ export class Shot {
 			this.angle += Math.PI;
 		}
 		this.angle -= 2*(this.angle - normal);
+		this.bounces--;
+		if (this.bounces < 0) throw new ShotExpiredEvent();
+	}
+	kill(tank:Tank){
+		tank.killedBy(this.owner);
+	}
+	destroy(){
+		this.owner.deleteShot(this);
 	}
 }

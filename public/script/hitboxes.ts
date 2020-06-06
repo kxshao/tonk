@@ -106,7 +106,7 @@ export class SphereHitbox implements Hitbox{
 		return Math.sqrt(dx*dx+dy*dy) < (this.r + o.r);
 	}
 	collideRect(o:RectHitbox){
-		let nearestPoint = o.getClosestEdgePoint(this)
+		let nearestPoint = o.getClosestEdgePoint(this);
 		return this.collidePoint(nearestPoint);
 	}
 	collideCaps(o:CapsuleHitbox){
@@ -220,10 +220,15 @@ export class TankHitbox implements Hitbox{
 	set y1(v:number){this.y = v + TankHitbox.ry;}
 	set x2(v:number){this.x = v - TankHitbox.rx;}
 	set y2(v:number){this.y = v - TankHitbox.ry;}
-	
 
+	collide(o:Hitbox){
+		if (o instanceof ShotHitbox){
+			return this.collideSphere(o.sphere);
+		}
+		return false;
+	}
 }
-export class ShotHitbox {
+export class ShotHitbox implements Hitbox{
 	static r = 5;
 
 	x:number;
@@ -240,9 +245,20 @@ export class ShotHitbox {
 	set y1(v:number){this.y = v + ShotHitbox.r;}
 	set x2(v:number){this.x = v - ShotHitbox.r;}
 	set y2(v:number){this.y = v - ShotHitbox.r;}
+	//hitbox may be updated in the future to a more complex composition of shapes
 	get sphere(){return new SphereHitbox(this.x, this.y, ShotHitbox.r)}
 
 	collideRect(o:RectHitbox){
 		return this.sphere.collideRect(o);
+	}
+	//todo?
+	collidePoint(o:PointHitbox){
+		return false;
+	}
+	collideSphere(o:SphereHitbox){
+		return false;
+	}
+	collideCaps(o:CapsuleHitbox){
+		return false;
 	}
 }

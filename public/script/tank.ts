@@ -1,7 +1,8 @@
 import {Shot, ShotSpeed, ShotType} from "./shot.js";
-import {TankHitbox} from "./hitboxes.js";
+import {Hitbox, TankHitbox} from "./hitboxes.js";
 import { Point } from "./utils.js";
 import { Obstacle, Wall, Edge } from "./obstacle.js";
+import {TankKilledEvent} from "./exceptions.js";
 
 enum MoveSpeed{
 	STATIONARY = 0,
@@ -29,7 +30,7 @@ export class Tank {
 	cooldown:number;
 	shotType:ShotType;
 	shots:Shot[];
-	pos:Point;
+	pos:TankHitbox;
 	angle:number;
 	nextPos:TankHitbox;
 
@@ -43,10 +44,7 @@ export class Tank {
 		this.cooldown = cooldown;
 		this.shotType = shotType;
 		this.shots = [];
-		this.pos = {
-			x:0,
-			y:0
-		};
+		this.pos = new TankHitbox(0,0);
 		this.angle = 0;
 		this.nextPos = null;
 	}
@@ -101,7 +99,20 @@ export class Tank {
 	shoot(angle){
 		let x = this.x + Tank.CANNON_LENGTH*Math.cos(angle);
 		let y = this.y + Tank.CANNON_LENGTH*Math.sin(angle);
-		this.shots.push(new Shot(this.shotType,x,y,angle));
+		this.shots.push(new Shot(this, this.shotType, x, y, angle));
+	}
+	deleteShot(shot:Shot){
+		if(!this.shots.includes(shot)){
+			throw new Error("attempted to delete a shot not owned by tank");
+		}
+		this.shots = this.shots.filter((e) => (e !== shot));
+	}
+	collide(o:Hitbox){
+		return this.pos.collide(o);
+	}
+	killedBy(tank:Tank){
+		console.log(this.color,"killed by",tank.color);
+		throw new TankKilledEvent(this, tank);
 	}
 }
 
