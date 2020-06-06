@@ -20,6 +20,9 @@ game.on('connection',function(sock){
 	sock.on('sendPos',function(data){
 		game.emit('receivePos',data);
 	});
+	sock.on('sendShots',function(data){
+		game.emit('receiveShots',data);
+	});
 });
 
 app.use(logger('dev'));

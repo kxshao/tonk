@@ -114,6 +114,12 @@ $(document).ready(function() {
 					G.p2.angle = data.cannon_dir;
 				}
 			});
+			G.sock.on('receiveShots', function (data) {
+				data = JSON.parse(data);
+				if(G.id !== data.id){
+					G.p2.deserializeShotList(data["shots"]);
+				}
+			});
 		});
 		$("#connectBtn").remove();
 	};
@@ -149,6 +155,11 @@ function init() {
 			//shot hitbox
 			drawCircle(hitboxCX, shot.x, shot.y, 5, "rgb(230,200,0)");
 		}
+		for(let shot of G.p2.shots){
+			drawShot(shotsCX,shot.x,shot.y,shot.angle,shot.isRocket);
+			//shot hitbox
+			drawCircle(hitboxCX, shot.x, shot.y, 5, "rgb(230,30,0)");
+		}
 
 		X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		X.drawImage(shotsLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -161,6 +172,10 @@ function init() {
 			"x": G.p1.x,
 			"y": G.p1.y,
 			"cannon_dir":G.p1.angle
+		}));
+		G.sock.emit('sendShots', JSON.stringify({
+			"id": G.id,
+			"shots": G.p1.serializeShotList()
 		}));
 	}
 	main(); // Start the cycle
@@ -228,7 +243,7 @@ function bindInputEvents(e:HTMLElement) {
 function moveTanks() {
 	let collisionList = [tstblock, edge, G.p1, G.p2];
 	G.p1.move(I.up,I.down,I.left,I.right, collisionList);
-	for(let shot of G.p1.shots){
+	for(let shot of [...G.p1.shots, ...G.p2.shots]){
 		try {
 			shot.move(collisionList);
 		}catch (e) {

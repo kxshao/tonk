@@ -114,6 +114,24 @@ export class Tank {
 		console.log(this.color,"killed by",tank.color);
 		throw new TankKilledEvent(this, tank);
 	}
+	serializeShotList(){
+		return this.shots.map(shot => (
+			{
+				"x":shot.pos.x,
+				"y":shot.pos.y,
+				"a":shot.angle,
+				"s":shot.speed,
+				"b":shot.bounces,
+				// "r":shot.isRocket
+			}
+		));
+	}
+	deserializeShotList(list:any[]){
+		this.shots = list.map((e) =>
+			//the use of new ShotType here is kind of bad semantics
+			new Shot(this, new ShotType(e["s"],e["b"]), e["x"], e["y"], e["a"])
+		)
+	}
 }
 
 
