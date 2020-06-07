@@ -4,8 +4,11 @@ import { Point, Vector } from "./utils.js";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-const GRID_ROWS = 10;
-const GRID_COLS = 10;
+const GRID_ROWS = 18;
+const GRID_COLS = 26;
+const GRID_WIDTH = CANVAS_WIDTH/GRID_COLS;
+const GRID_HEIGHT = CANVAS_HEIGHT/GRID_ROWS;
+const BLOCK_MARGIN = 3;
 
 const KEY_UP = "ArrowUp";
 const KEY_DOWN = "ArrowDown";
@@ -72,14 +75,15 @@ class Floor implements MapTile{
     breakable;
     collision;
     constructor(pos:Point) {
-        this.pos = pos;
+        this.pos = {x:pos.x, y:pos.y};
         this.blockTanks = false;
         this.blockShots = false;
         this.breakable = false;
         this.collision = new NullHitbox();
     }
     draw(X:CanvasRenderingContext2D){
-        //todo
+        X.fillStyle = "#D2AC64";
+        X.fillRect(this.pos.x,this.pos.y,GRID_WIDTH,GRID_HEIGHT);
     }
     serialize(){
         return [MapTileTypes.Floor, this.pos.x, this.pos.y];
@@ -92,14 +96,17 @@ class Wall implements MapTile{
     breakable;
     collision;
     constructor(pos:Point) {
-        this.pos = pos;
+        this.pos = {x:pos.x, y:pos.y};
         this.blockTanks = true;
         this.blockShots = true;
         this.breakable = false;
         this.collision = new NullHitbox();
     }
     draw(X:CanvasRenderingContext2D){
-        //todo
+        X.fillStyle = "#666";
+        X.fillRect(this.pos.x,this.pos.y,GRID_WIDTH,GRID_HEIGHT);
+        X.fillStyle = "#333";
+        X.fillRect(this.pos.x+BLOCK_MARGIN,this.pos.y+BLOCK_MARGIN,GRID_WIDTH-2*BLOCK_MARGIN,GRID_HEIGHT-2*BLOCK_MARGIN);
     }
     serialize(){
         return [MapTileTypes.Wall, this.pos.x, this.pos.y];
@@ -112,14 +119,17 @@ class BreakableWall implements MapTile{
     breakable;
     collision;
     constructor(pos:Point) {
-        this.pos = pos;
+        this.pos = {x:pos.x, y:pos.y};
         this.blockTanks = true;
         this.blockShots = true;
         this.breakable = true;
         this.collision = new NullHitbox();
     }
     draw(X:CanvasRenderingContext2D){
-        //todo
+        X.fillStyle = "#D2AC64";
+        X.fillRect(this.pos.x,this.pos.y,GRID_WIDTH,GRID_HEIGHT);
+        X.fillStyle = "#A35E3D";
+        X.fillRect(this.pos.x+BLOCK_MARGIN,this.pos.y+BLOCK_MARGIN,GRID_WIDTH-2*BLOCK_MARGIN,GRID_HEIGHT-2*BLOCK_MARGIN);
     }
     serialize(){
         return [MapTileTypes.BreakableWall, this.pos.x, this.pos.y];
@@ -132,14 +142,16 @@ class Hole implements MapTile{
     breakable;
     collision;
     constructor(pos:Point) {
-        this.pos = pos;
+        this.pos = {x:pos.x, y:pos.y};
         this.blockTanks = true;
         this.blockShots = false;
         this.breakable = false;
         this.collision = new NullHitbox();
     }
     draw(X:CanvasRenderingContext2D){
-        //todo
+        X.fillStyle = "#D2AC64";
+        X.fillRect(this.pos.x,this.pos.y,GRID_WIDTH,GRID_HEIGHT);
+        drawCircle(X, this.pos.x + GRID_WIDTH/2, this.pos.y + GRID_HEIGHT/2, GRID_HEIGHT/2-BLOCK_MARGIN, "#111");
     }
     serialize(){
         return [MapTileTypes.Hole, this.pos.x, this.pos.y];
@@ -278,11 +290,24 @@ function bindInputEvents(e:HTMLElement) {
         let y = (ev.clientY - rect.top) * C.height / rect.height;
 
         let gridPos = getGridPos(x,y);
+        let canvasPos = {x:gridPos.x*GRID_WIDTH, y:gridPos.y*GRID_HEIGHT};
 
         $("#mousecoord").text("grid position "+gridPos.x+","+gridPos.y);
 
-        if(selectedAction === "create"){
-            grid[gridPos.y][gridPos.x] = new Wall(gridPos);
+        if(selectedAction === "create") {
+            if (selectedObjType === "wall") {
+                grid[gridPos.y][gridPos.x] = new Wall(canvasPos);
+            }
+            if (selectedObjType === "breakable") {
+                grid[gridPos.y][gridPos.x] = new BreakableWall(canvasPos);
+            }
+            if (selectedObjType === "floor") {
+                grid[gridPos.y][gridPos.x] = new Floor(canvasPos);
+            }
+            if (selectedObjType === "hole") {
+                grid[gridPos.y][gridPos.x] = new Hole(canvasPos);
+            }
+        }else if(selectedAction === "select"){
             //todo
         }
     });
