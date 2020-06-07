@@ -26,9 +26,6 @@
 }
 .popup-content{
 	display: table-row;
-	width: 90%;
-	height: 100%;
-	margin: 0 auto;
 }
 .popup-submit{
 	display: table-row;
@@ -38,7 +35,7 @@
 	background-color: #eeeeee;
 	font-family: Consolas, monospace;
 	width: calc(100% - 20px);
-	height: calc(100% - 20px);
+	height: 600px;
 	overflow: auto;
 	margin: 10px auto;
 }
