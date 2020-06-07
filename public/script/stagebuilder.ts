@@ -35,7 +35,36 @@ let tmpPoint: Point = null;
 let customSize = 10;
 let customColor = "rgb(255,0,0)";
 
-let grid;
+let stage;
+
+class Stage {
+	grid:MapTile[][];
+
+	constructor() {
+		this.grid = [];
+		for (let i = 0; i < GRID_ROWS; i++) {
+			this.grid[i] = [];
+			for (let j = 0; j < GRID_COLS; j++) {
+				this.grid[i][j] = new Floor(i,j);
+			}
+		}
+	}
+
+	serialize(){
+		let arr = [];
+		for (let i = 0; i < this.grid.length; i++) {
+			arr[i] = this.grid[i].map(maptile => maptile.serialize());
+		}
+		return arr;
+	}
+
+	static deserialize(serialized){
+		let newStage = new Stage();
+		for (let i = 0; i < newStage.grid.length; i++) {
+			newStage.grid[i] = serialized[i].map(x => MapTile.deserialize(x));
+		}
+	}
+}
 
 enum MapTileTypes {
 	Floor,
@@ -45,6 +74,7 @@ enum MapTileTypes {
 }
 
 abstract class MapTile {
+	gridPos:{i:number,j:number};
 	pos: Point;
 	blockTanks: boolean;
 	blockShots: boolean;
@@ -52,23 +82,23 @@ abstract class MapTile {
 	collision: Hitbox;
 	draw: (X: CanvasRenderingContext2D) => void;
 
-	protected constructor() {
-	}
+	protected constructor() {}
 
 	abstract serialize(): any[];
 
 	static deserialize(serialized) {
 		let tile = serialized[0];
-		let pos = {x: serialized[1], y: serialized[2]};
+		let i = serialized[1];
+		let j = serialized[2];
 		switch (tile) {
 			case MapTileTypes.Floor:
-				return new Floor(pos);
+				return new Floor(i,j);
 			case MapTileTypes.Wall:
-				return new Wall(pos);
+				return new Wall(i,j);
 			case MapTileTypes.BreakableWall:
-				return new Floor(pos);
+				return new Floor(i,j);
 			case MapTileTypes.Hole:
-				return new Floor(pos);
+				return new Floor(i,j);
 			default:
 				throw new Error();
 		}
@@ -76,14 +106,16 @@ abstract class MapTile {
 }
 
 class Floor implements MapTile {
+	gridPos;
 	pos;
 	blockTanks;
 	blockShots;
 	breakable;
 	collision;
 
-	constructor(pos: Point) {
-		this.pos = {x: pos.x, y: pos.y};
+	constructor(i:number, j:number) {
+		this.gridPos = {i: i, j: j};
+		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = false;
 		this.blockShots = false;
 		this.breakable = false;
@@ -96,19 +128,21 @@ class Floor implements MapTile {
 	}
 
 	serialize() {
-		return [MapTileTypes.Floor, this.pos.x, this.pos.y];
+		return [MapTileTypes.Floor, this.gridPos.i, this.gridPos.j];
 	}
 }
 
 class Wall implements MapTile {
+	gridPos;
 	pos;
 	blockTanks;
 	blockShots;
 	breakable;
 	collision;
 
-	constructor(pos: Point) {
-		this.pos = {x: pos.x, y: pos.y};
+	constructor(i:number, j:number) {
+		this.gridPos = {i: i, j: j};
+		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = true;
 		this.blockShots = true;
 		this.breakable = false;
@@ -123,19 +157,21 @@ class Wall implements MapTile {
 	}
 
 	serialize() {
-		return [MapTileTypes.Wall, this.pos.x, this.pos.y];
+		return [MapTileTypes.Wall, this.gridPos.i, this.gridPos.j];
 	}
 }
 
 class BreakableWall implements MapTile {
+	gridPos;
 	pos;
 	blockTanks;
 	blockShots;
 	breakable;
 	collision;
 
-	constructor(pos: Point) {
-		this.pos = {x: pos.x, y: pos.y};
+	constructor(i:number, j:number) {
+		this.gridPos = {i: i, j: j};
+		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = true;
 		this.blockShots = true;
 		this.breakable = true;
@@ -150,19 +186,21 @@ class BreakableWall implements MapTile {
 	}
 
 	serialize() {
-		return [MapTileTypes.BreakableWall, this.pos.x, this.pos.y];
+		return [MapTileTypes.BreakableWall, this.gridPos.i, this.gridPos.j];
 	}
 }
 
 class Hole implements MapTile {
+	gridPos;
 	pos;
 	blockTanks;
 	blockShots;
 	breakable;
 	collision;
 
-	constructor(pos: Point) {
-		this.pos = {x: pos.x, y: pos.y};
+	constructor(i:number, j:number) {
+		this.gridPos = {i: i, j: j};
+		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = true;
 		this.blockShots = false;
 		this.breakable = false;
@@ -176,7 +214,7 @@ class Hole implements MapTile {
 	}
 
 	serialize() {
-		return [MapTileTypes.Hole, this.pos.x, this.pos.y];
+		return [MapTileTypes.Hole, this.gridPos.i, this.gridPos.j];
 	}
 }
 
@@ -240,9 +278,9 @@ $(document).ready(function () {
 	document.getElementById("import").onclick = function () {
 		let container = $(`<div class="popup-container"></div>`);
 		container.on("click", function () {
-			$(this).remove();
+			container.remove();
 		});
-		let popup = $(`<div class="popup"><h1 class="popup-heading">Load</h1></div>`);
+		let popup = $(`<div class="popup"><h1 class="popup-heading">Paste or upload JSON data here</h1></div>`);
 		popup.on("click", function (ev) {
 			ev.stopPropagation();
 		});
@@ -278,7 +316,10 @@ $(document).ready(function () {
 			try{
 				let text = "" + inputBox.val();
 				let data = JSON.parse(text);
-				console.log(data);
+				stage = Stage.deserialize(data);
+				alert("successfully loaded stage data");
+				container.remove();
+				main(false);
 			} catch (e) {
 				alert("failed to understand input");
 				console.error(e);
@@ -290,7 +331,28 @@ $(document).ready(function () {
 		$("body").append(container);
 	};
 	document.getElementById("export").onclick = function () {
-		main(false);
+		let container = $(`<div class="popup-container"></div>`);
+		container.on("click", function () {
+			container.remove();
+		});
+		let popup = $(`<div class="popup"><h1 class="popup-heading">Copy or save to file</h1></div>`);
+		popup.on("click", function (ev) {
+			ev.stopPropagation();
+		});
+		let content = $(`<div class="popup-content"></div>`);
+		let inputBox = $(`<p class="codebox"></p>`);
+		content.append(inputBox);
+		inputBox.text(JSON.stringify(stage.serialize()));
+		let buttons = $(`<div class="popup-submit"></div>`);
+		let saveButton = $(`<button>save</button>`);
+		buttons.append(saveButton);
+		saveButton.on("click", function (ev) {
+			ev.stopPropagation();
+		});
+		popup.append(content);
+		popup.append(buttons);
+		container.append(popup);
+		$("body").append(container);
 	};
 
 	init();
@@ -305,9 +367,9 @@ function main(cont?) {
 	L1CX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 	L2CX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-	for (let i = 0; i < grid.length; i++) {
-		for (let j = 0; j < grid[i].length; j++) {
-			let tile: MapTile = grid[i][j];
+	for (let i = 0; i < stage.grid.length; i++) {
+		for (let j = 0; j < stage.grid[i].length; j++) {
+			let tile: MapTile = stage.grid[i][j];
 			tile.draw(X)
 		}
 	}
@@ -318,28 +380,23 @@ function main(cont?) {
 }
 
 function init() {
-	grid = [];
-	for (let i = 0; i < GRID_ROWS; i++) {
-		grid[i] = [];
-		let yPos = i * CANVAS_HEIGHT / GRID_ROWS;
-		for (let j = 0; j < GRID_COLS; j++) {
-			let xPos = j * CANVAS_WIDTH / GRID_COLS;
-			grid[i][j] = new Floor({x: xPos, y: yPos});
-		}
-	}
+	stage = new Stage();
 	drawGrid(X);
 	//@ts-ignore
-	window.grid = grid;
+	window.stage = stage;
 }
 
-function getGridPos(x: number | number[], y?: number): Point {
-	if (x instanceof Array) {
-		y = x[1];
-		x = x[0];
-	}
+function canvasPosToGrid(x: number, y: number) {
 	return {
-		x: Math.trunc(x / CANVAS_WIDTH * GRID_COLS),
-		y: Math.trunc(y / CANVAS_HEIGHT * GRID_ROWS)
+		i: Math.trunc(y / CANVAS_HEIGHT * GRID_ROWS),
+		j: Math.trunc(x / CANVAS_WIDTH * GRID_COLS)
+	};
+}
+
+function gridPosToCanvas(i: number, j: number) {
+	return {
+		x: j * CANVAS_WIDTH / GRID_COLS,
+		y: i * CANVAS_HEIGHT / GRID_ROWS
 	};
 }
 
@@ -368,23 +425,24 @@ function bindInputEvents(e: HTMLElement) {
 		let x = (ev.clientX - rect.left) * C.width / rect.width;
 		let y = (ev.clientY - rect.top) * C.height / rect.height;
 
-		let gridPos = getGridPos(x, y);
-		let canvasPos = {x: gridPos.x * GRID_WIDTH, y: gridPos.y * GRID_HEIGHT};
+		let gridPos = canvasPosToGrid(x, y);
+		let i = gridPos.i;
+		let j = gridPos.j;
 
-		$("#mousecoord").text("grid position " + gridPos.x + "," + gridPos.y);
+		$("#mousecoord").text("grid position " + i + "," + j);
 
 		if (selectedAction === "create") {
 			if (selectedObjType === "wall") {
-				grid[gridPos.y][gridPos.x] = new Wall(canvasPos);
+				stage.grid[i][j] = new Wall(i,j);
 			}
 			if (selectedObjType === "breakable") {
-				grid[gridPos.y][gridPos.x] = new BreakableWall(canvasPos);
+				stage.grid[i][j] = new BreakableWall(i,j);
 			}
 			if (selectedObjType === "floor") {
-				grid[gridPos.y][gridPos.x] = new Floor(canvasPos);
+				stage.grid[i][j] = new Floor(i,j);
 			}
 			if (selectedObjType === "hole") {
-				grid[gridPos.y][gridPos.x] = new Hole(canvasPos);
+				stage.grid[i][j] = new Hole(i,j);
 			}
 		} else if (selectedAction === "select") {
 			//todo
