@@ -28,10 +28,9 @@ let C: HTMLCanvasElement;
 let X: CanvasRenderingContext2D;
 let animationLoop = 0;
 
-let selectedObjType = "point";
-let selectedAction = "create";
+let selectedObjType = "floor";
+let selectedAction = "tiles";
 
-let tmpPoint: Point = null;
 let customSize = 10;
 let customColor = "rgb(255,0,0)";
 
@@ -247,18 +246,32 @@ $(document).ready(function () {
 	};
 	bindInputEvents(C);
 
-	$("#choose_object .option").click(function (e) {
+	$("#choose_tile .option").click(function (e) {
 		//deselect others
-		$("#choose_object .selected").removeClass("selected");
+		$("#choose_tile .selected").removeClass("selected");
 		$(e.target).addClass("selected");
 		selectedObjType = e.target.innerText;
-		//clear half-drawn things
-		tmpPoint = null;
+	});
+	$("#choose_tank .option").click(function (e) {
+		$("#choose_tank .selected").removeClass("selected");
+		$(e.target).addClass("selected");
+		//selectedObjType used for both tanks and tiles
+		selectedObjType = e.target.innerText;
 	});
 	$("#choose_action .option").click(function (e) {
 		$("#choose_action .selected").removeClass("selected");
 		$(e.target).addClass("selected");
 		selectedAction = e.target.innerText;
+		switch(selectedAction){
+			case "tiles":
+				$("#tile_select").removeClass("hide");
+				$("#tank_select").addClass("hide");
+				break;
+			case "tanks":
+				$("#tank_select").removeClass("hide");
+				$("#tile_select").addClass("hide");
+				break;
+		}
 	});
 	$("#size_input").change(function (e) {
 		// @ts-ignore
@@ -435,7 +448,7 @@ function bindInputEvents(e: HTMLElement) {
 
 		$("#mousecoord").text("grid position " + i + "," + j);
 
-		if (selectedAction === "create") {
+		if (selectedAction === "tiles") {
 			if (selectedObjType === "wall") {
 				stage.grid[i][j] = new Wall(i,j);
 			}
@@ -448,7 +461,7 @@ function bindInputEvents(e: HTMLElement) {
 			if (selectedObjType === "hole") {
 				stage.grid[i][j] = new Hole(i,j);
 			}
-		} else if (selectedAction === "select") {
+		} else if (selectedAction === "tanks") {
 			//todo
 		}
 	});

@@ -19,44 +19,59 @@
 		<div style="display: table-cell;">
 			<canvas id="canvas" style="border: 1px solid crimson; display:table-cell;"></canvas>
 		</div>
-		<div style="width:200px; display: table-cell; border: 1px solid blueviolet; vertical-align: top;">
-			<div style="display: table; width: 100%; background-color: blanchedalmond;">
-				<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+		<div class="menu-container">
+			<div class="menu">
+				<div class="menu-item">
 					<h2>Commands</h2>
-					<div style="display: grid;grid-template-columns: auto auto; grid-gap: 5px; padding: 2px;">
+					<div class="menu-item-option-group">
 						<button id="pause">start/pause</button>
 						<button id="nextframe">next frame</button>
 						<button id="clear">clear canvas</button>
 					</div>
 				</div>
-				<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
-					<h2>Choose object</h2>
-					<div id="choose_object" style="display: grid;grid-template-columns: auto auto; grid-gap: 5px; padding: 2px;">
+				<div id="tile_select" class="menu-item">
+					<h2>Choose tile</h2>
+					<div id="choose_tile" class="menu-item-option-group">
 						<div class="option">wall</div>
 						<div class="option">breakable</div>
 						<div class="option">floor</div>
 						<div class="option">hole</div>
 					</div>
 				</div>
-				<div id="choose_action" style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+				<div id="tank_select" class="menu-item hide">
+					<h2>Choose tank</h2>
+					<div id="choose_tank" class="menu-item-option-group">
+						<div class="option">player 1</div>
+						<div class="option">player 2</div>
+						<div class="option">brown</div>
+						<div class="option">grey</div>
+						<div class="option">teal</div>
+						<div class="option">yellow</div>
+						<div class="option">red</div>
+						<div class="option">green</div>
+						<div class="option">purple</div>
+						<div class="option">white</div>
+					</div>
+				</div>
+				<div id="choose_action" class="menu-item">
 					<h2>Choose action</h2>
-					<div style="display: grid;grid-template-columns: auto auto; grid-gap: 5px; padding: 2px;">
-						<div class="option">create</div>
-						<div class="option">select</div>
+					<div class="menu-item-option-group">
+						<div class="option">tiles</div>
+						<div class="option">tanks</div>
 						<div class="option">move</div>
 						<div class="option">test</div>
 					</div>
 				</div>
-				<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+				<div class="menu-item">
 					<h2>Coordinates</h2>
 					<div id="mousecoord"></div>
 				</div>
-				<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+				<div class="menu-item">
 					<h2>Object properties</h2>
 					<label for="size_input">size</label><input id="size_input" type="number" step="any" value="10">
 					<label for="color_input">color</label><input id="color_input" type="color" value="#FF0000">
 				</div>
-				<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+				<div class="menu-item">
 					<h2>Import/Export</h2>
 					<button id="import">Import</button>
 					<button id="export">Export</button>

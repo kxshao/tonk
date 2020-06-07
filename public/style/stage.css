@@ -1,10 +1,3 @@
-.selected{
-	border: 1px solid red !important;
-}
-.option{
-	border: 1px solid gray;
-}
-
 .popup-container{
 	position: fixed;
 	width: 100vw;
@@ -38,4 +31,36 @@
 	height: 600px;
 	overflow: auto;
 	margin: 10px auto;
+}
+.menu-container{
+	width:200px;
+	display: table-cell;
+	border: 1px solid blueviolet;
+	vertical-align: top;
+}
+.menu{
+	display: table;
+	width: 100%;
+	background-color: blanchedalmond;
+}
+.menu-item{
+	display: table-row;
+	text-align: center;
+	outline: 1px solid olivedrab;
+}
+.menu-item-option-group{
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-gap: 5px;
+	padding: 2px;
+}
+.selected{
+	border: 1px solid red !important;
+}
+.option{
+	border: 1px solid gray;
+}
+
+.hide{
+	display: none !important;
 }
