@@ -10,16 +10,8 @@
 		crossorigin="anonymous">
 	</script>
 	<script type="module" src="script/stagebuilder.js"></script>
+	<link rel="stylesheet" href="style/stage.css">
 </head>
-
-<style>
-	.selected{
-		border: 1px solid red !important;
-	}
-	.option{
-		border: 1px solid gray;
-	}
-</style>
 
 <body style="background-color: #333">
 <div id="container" style="display: table;">
@@ -63,6 +55,11 @@
 					<h2>Object properties</h2>
 					<label for="size_input">size</label><input id="size_input" type="number" step="any" value="10">
 					<label for="color_input">color</label><input id="color_input" type="color" value="#FF0000">
+				</div>
+				<div style="display: table-row;text-align: center; outline: 1px solid olivedrab;">
+					<h2>Import/Export</h2>
+					<button id="import">Import</button>
+					<button id="export">Export</button>
 				</div>
 			</div>
 		</div>
