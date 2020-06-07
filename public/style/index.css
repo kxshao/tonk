@@ -1,9 +1,9 @@
 #container{
-    padding: 10px;
-    margin: auto;
-    text-align: center;
-    border: 1px solid slateblue;
+	padding: 10px;
+	margin: auto;
+	text-align: center;
+	border: 1px solid slateblue;
 }
 #canvas{
-    border: 1px solid crimson;
+	border: 1px solid crimson;
 }
