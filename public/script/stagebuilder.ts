@@ -35,7 +35,7 @@ let tmpPoint: Point = null;
 let customSize = 10;
 let customColor = "rgb(255,0,0)";
 
-let stage;
+let stage:Stage;
 
 class Stage {
 	grid:MapTile[][];
@@ -63,6 +63,7 @@ class Stage {
 		for (let i = 0; i < newStage.grid.length; i++) {
 			newStage.grid[i] = serialized[i].map(x => MapTile.deserialize(x));
 		}
+		return newStage;
 	}
 }
 
@@ -96,9 +97,9 @@ abstract class MapTile {
 			case MapTileTypes.Wall:
 				return new Wall(i,j);
 			case MapTileTypes.BreakableWall:
-				return new Floor(i,j);
+				return new BreakableWall(i,j);
 			case MapTileTypes.Hole:
-				return new Floor(i,j);
+				return new Hole(i,j);
 			default:
 				throw new Error();
 		}
@@ -342,12 +343,15 @@ $(document).ready(function () {
 		let content = $(`<div class="popup-content"></div>`);
 		let inputBox = $(`<p class="codebox"></p>`);
 		content.append(inputBox);
-		inputBox.text(JSON.stringify(stage.serialize()));
+		let jsonText = JSON.stringify(stage.serialize());
+		inputBox.text(jsonText);
 		let buttons = $(`<div class="popup-submit"></div>`);
 		let saveButton = $(`<button>save</button>`);
 		buttons.append(saveButton);
 		saveButton.on("click", function (ev) {
-			ev.stopPropagation();
+			let dataURL = $(`<a download="stage.json" 
+			href="data:application/json,${encodeURIComponent(jsonText)}"></a>`);
+			dataURL[0].click();
 		});
 		popup.append(content);
 		popup.append(buttons);
