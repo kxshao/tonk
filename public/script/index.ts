@@ -267,7 +267,7 @@ function drawCircle(X: CanvasRenderingContext2D, x, y, r, color){
 	resetAngle(X);
 }
 
-function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
+export function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
 	x -= TANK_WIDTH_HALF;
 	y -= TANK_HEIGHT_HALF;
 	X.fillStyle = "rgb(120,100,50)";
@@ -278,7 +278,7 @@ function drawTankBase(X: CanvasRenderingContext2D, x, y, color) {
 	X.fillRect(x,y,3,3);
 }
 
-function drawTankCannon(X: CanvasRenderingContext2D, x, y, angle, color) {
+export function drawTankCannon(X: CanvasRenderingContext2D, x, y, angle, color) {
 	rotate(X,x,y,angle);
 	X.strokeStyle = "rgb(30,30,30)";
 	X.fillStyle = color;

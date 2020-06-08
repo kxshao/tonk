@@ -1,5 +1,7 @@
-import {RectHitbox, PointHitbox, SphereHitbox, CapsuleHitbox, Hitbox, NullHitbox} from "./hitboxes.js";
+import {CapsuleHitbox, Hitbox, NullHitbox} from "./hitboxes.js";
 import {Point, Vector} from "./utils.js";
+import {TankColors} from "./tank.js";
+import {drawTankBase, drawTankCannon} from "./index.js";
 
 
 const CANVAS_WIDTH = 800;
@@ -38,14 +40,88 @@ let stage:Stage;
 
 class Stage {
 	grid:MapTile[][];
+	p1:[number,number];
+	p2:[number,number];
+	enemies:TankColors[][];
 
 	constructor() {
 		this.grid = [];
+		this.enemies = [];
 		for (let i = 0; i < GRID_ROWS; i++) {
 			this.grid[i] = [];
+			this.enemies[i] = [];
 			for (let j = 0; j < GRID_COLS; j++) {
 				this.grid[i][j] = new Floor(i,j);
+				this.enemies[i][j] = null;
 			}
+		}
+		this.p1 = [0,0];
+		this.p2 = [0,1];
+	}
+
+	resetTile(i,j){
+		this.grid[i][j] = new Floor(i,j);
+		this.enemies[i][j] = null;
+		if(this.p1 && this.p1[0] === i && this.p1[1] === j){
+			this.p1 = null;
+		}
+		if(this.p2 && this.p2[0] === i && this.p2[1] === j){
+			this.p2 = null;
+		}
+	}
+	setTile(type:string, i:number, j:number){
+		this.resetTile(i,j);
+		if (type === "floor") {
+			//do nothing because resetTile defaults to floor
+		} else if (type === "wall") {
+			this.grid[i][j] = new Wall(i,j);
+		} else if (type === "breakable") {
+			this.grid[i][j] = new BreakableWall(i,j);
+		} else if (type === "hole") {
+			this.grid[i][j] = new Hole(i,j);
+		} else {
+			throw new Error("invalid tile type");
+		}
+	}
+	setSpawn(type:string, i:number, j:number){
+		//tanks can only spawn on floors
+		this.resetTile(i,j);
+		switch (type) {
+			case "Player1":
+				this.p1 = [i,j];
+				break;
+			case "Player2":
+				this.p2 = [i,j];
+				break;
+			case "Brown":
+				this.enemies[i][j] = TankColors.Brown;
+				break;
+			case "Grey":
+				this.enemies[i][j] = TankColors.Grey;
+				break;
+			case "Teal":
+				this.enemies[i][j] = TankColors.Teal;
+				break;
+			case "Yellow":
+				this.enemies[i][j] = TankColors.Yellow;
+				break;
+			case "Red":
+				this.enemies[i][j] = TankColors.Red;
+				break;
+			case "Green":
+				this.enemies[i][j] = TankColors.Green;
+				break;
+			case "Purple":
+				this.enemies[i][j] = TankColors.Purple;
+				break;
+			case "White":
+				this.enemies[i][j] = TankColors.White;
+				break;
+			case "Black":
+				this.enemies[i][j] = TankColors.Black;
+				break;
+			default:
+				throw new Error("invalid tank type");
 		}
 	}
 
@@ -125,6 +201,10 @@ class Floor implements MapTile {
 	draw(X: CanvasRenderingContext2D) {
 		X.fillStyle = "#D2AC64";
 		X.fillRect(this.pos.x, this.pos.y, GRID_WIDTH, GRID_HEIGHT);
+	}
+	drawTank(X: CanvasRenderingContext2D, color:TankColors){
+		drawTankBase(X, this.pos.x + GRID_WIDTH/2, this.pos.y + GRID_HEIGHT/2, color);
+		drawTankCannon(X, this.pos.x + GRID_WIDTH/2, this.pos.y + GRID_HEIGHT/2, 0, color);
 	}
 
 	serialize() {
@@ -387,8 +467,21 @@ function main(cont?) {
 	for (let i = 0; i < stage.grid.length; i++) {
 		for (let j = 0; j < stage.grid[i].length; j++) {
 			let tile: MapTile = stage.grid[i][j];
-			tile.draw(X)
+			tile.draw(X);
+			if(stage.enemies[i][j]){
+				(tile as Floor).drawTank(X,stage.enemies[i][j]);
+			}
 		}
+	}
+	if(stage.p1){
+		let i = stage.p1[0];
+		let j = stage.p1[1];
+		(stage.grid[i][j] as Floor).drawTank(X,TankColors.Player1);
+	}
+	if(stage.p2){
+		let i = stage.p2[0];
+		let j = stage.p2[1];
+		(stage.grid[i][j] as Floor).drawTank(X,TankColors.Player2);
 	}
 
 	X.drawImage(layer1, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -449,20 +542,9 @@ function bindInputEvents(e: HTMLElement) {
 		$("#mousecoord").text("grid position " + i + "," + j);
 
 		if (selectedAction === "tiles") {
-			if (selectedObjType === "wall") {
-				stage.grid[i][j] = new Wall(i,j);
-			}
-			if (selectedObjType === "breakable") {
-				stage.grid[i][j] = new BreakableWall(i,j);
-			}
-			if (selectedObjType === "floor") {
-				stage.grid[i][j] = new Floor(i,j);
-			}
-			if (selectedObjType === "hole") {
-				stage.grid[i][j] = new Hole(i,j);
-			}
+			stage.setTile(selectedObjType,i,j);
 		} else if (selectedAction === "tanks") {
-			//todo
+			stage.setSpawn(selectedObjType,i,j);
 		}
 	});
 	e.addEventListener("contextmenu", function (ev: MouseEvent) {

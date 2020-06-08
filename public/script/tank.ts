@@ -16,6 +16,20 @@ enum Cooldown{
 	FAST = 1
 }
 
+export enum TankColors {
+	Player1 = "#4070FF",
+	Player2 = "#FF3030",
+	Brown = "#704020",
+	Grey = "#708090",
+	Teal = "#008080",
+	Yellow = "#FFD700",
+	Red = "#8B0000",
+	Green = "#006400",
+	Purple = "#800080",
+	White = "#EEFFDD",
+	Black = "#001122",
+}
+
 export class Tank {
 	static WIDTH = 30;
 	static HEIGHT = 24;
@@ -138,53 +152,53 @@ export class Tank {
 
 export class Player extends Tank{
 	constructor(playerNum:number){
-		let color = playerNum === 1 ? "#4070FF" : "#FF3030";
+		let color = playerNum === 1 ? TankColors.Player1 : TankColors.Player2;
 		super(color,5,2,MoveSpeed.MED,Cooldown.FAST,new ShotType(ShotSpeed.SLOW,1));
 	}
 }
 class Brown extends Tank{
 	constructor(){
-		super("#704020",1,0,MoveSpeed.STATIONARY,Cooldown.SLOW,new ShotType(ShotSpeed.SLOW,1));
+		super(TankColors.Brown,1,0,MoveSpeed.STATIONARY,Cooldown.SLOW,new ShotType(ShotSpeed.SLOW,1));
 	}
 }
 class Grey extends Tank{
 	constructor(){
-		super("#708090",1,0,MoveSpeed.SLOW,Cooldown.SLOW,new ShotType(ShotSpeed.SLOW,1));
+		super(TankColors.Grey,1,0,MoveSpeed.SLOW,Cooldown.SLOW,new ShotType(ShotSpeed.SLOW,1));
 	}
 }
 class Teal extends Tank{
 	constructor(){
-		super("#008080",1,0,MoveSpeed.SLOW,Cooldown.SLOW,new ShotType(ShotSpeed.FAST,0));
+		super(TankColors.Teal,1,0,MoveSpeed.SLOW,Cooldown.SLOW,new ShotType(ShotSpeed.FAST,0));
 	}
 }
 class Yellow extends Tank{
 	constructor(){
-		super("#FFD700",1,4,MoveSpeed.MED,Cooldown.SLOW,new ShotType(ShotSpeed.SLOW,1));
+		super(TankColors.Yellow,1,4,MoveSpeed.MED,Cooldown.SLOW,new ShotType(ShotSpeed.SLOW,1));
 	}
 }
 class Red extends Tank{
 	constructor(){
-		super("#8B0000",3,0,MoveSpeed.SLOW,Cooldown.FAST,new ShotType(ShotSpeed.SLOW,1));
+		super(TankColors.Red,3,0,MoveSpeed.SLOW,Cooldown.FAST,new ShotType(ShotSpeed.SLOW,1));
 	}
 }
 class Green extends Tank{
 	constructor(){
-		super("#006400",2,0,MoveSpeed.STATIONARY,Cooldown.FAST,new ShotType(ShotSpeed.FAST,2));
+		super(TankColors.Green,2,0,MoveSpeed.STATIONARY,Cooldown.FAST,new ShotType(ShotSpeed.FAST,2));
 	}
 }
 class Purple extends Tank{
 	constructor(){
-		super("#800080",5,2,MoveSpeed.MED,Cooldown.FAST,new ShotType(ShotSpeed.SLOW,1));
+		super(TankColors.Purple,5,2,MoveSpeed.MED,Cooldown.FAST,new ShotType(ShotSpeed.SLOW,1));
 	}
 }
 class White extends Tank{
 	constructor(){
-		super("#EEFFDD",5,2,MoveSpeed.SLOW,Cooldown.FAST,new ShotType(ShotSpeed.SLOW,1));
+		super(TankColors.White,5,2,MoveSpeed.SLOW,Cooldown.FAST,new ShotType(ShotSpeed.SLOW,1));
 	}
 }
 class Black extends Tank{
 	constructor(){
-		super("#001122",2,2,MoveSpeed.FAST,Cooldown.FAST,new ShotType(ShotSpeed.FAST,0));
+		super(TankColors.Black,2,2,MoveSpeed.FAST,Cooldown.FAST,new ShotType(ShotSpeed.FAST,0));
 	}
 }
 // Player 	Mission 1 	Normal 	Controlled 	Normal 	Controlled 	1 	5 	2
