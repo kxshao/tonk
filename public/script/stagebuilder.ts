@@ -38,6 +38,8 @@ let customColor = "rgb(255,0,0)";
 
 let stage:Stage;
 
+let gridlinesOn = true;
+
 class Stage {
 	grid:MapTile[][];
 	p1:[number,number];
@@ -348,7 +350,7 @@ $(document).ready(function () {
 	C.height = CANVAS_HEIGHT;
 	X = C.getContext("2d") as CanvasRenderingContext2D;
 
-	document.getElementById('pause').onclick = function () {
+	document.getElementById("pause").onclick = function () {
 		if (animationLoop) {
 			window.cancelAnimationFrame(animationLoop);
 			animationLoop = 0;
@@ -356,17 +358,20 @@ $(document).ready(function () {
 			main();
 		}
 	};
-	document.getElementById('nextframe').onclick = function () {
+	document.getElementById("nextframe").onclick = function () {
 		if (animationLoop) {
 			window.cancelAnimationFrame(animationLoop);
 			animationLoop = 0;
 		}
 		main(false);
 	};
-	document.getElementById('clear').onclick = function () {
+	document.getElementById("clear").onclick = function () {
 		X.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 		L1CX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 		L2CX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+	};
+	document.getElementById("toggle_grid").onclick = function () {
+		gridlinesOn = !gridlinesOn;
 	};
 	bindInputEvents(C);
 
@@ -508,6 +513,11 @@ function main(cont?) {
 	L1CX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 	L2CX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+	//fill background with floor color to hide gaps
+	//because grid size does not divide evenly into canvas size
+	X.fillStyle = "#D2AC64";
+	X.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
 	for (let i = 0; i < stage.grid.length; i++) {
 		for (let j = 0; j < stage.grid[i].length; j++) {
 			let tile: MapTile = stage.grid[i][j];
@@ -530,7 +540,7 @@ function main(cont?) {
 
 	X.drawImage(layer1, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 	X.drawImage(layer2, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-	drawGrid(X);
+	if(gridlinesOn) drawGrid(X);
 }
 
 function init() {
