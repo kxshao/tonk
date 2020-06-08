@@ -125,19 +125,59 @@ class Stage {
 		}
 	}
 
-	serialize(){
-		let arr = [];
-		for (let i = 0; i < this.grid.length; i++) {
-			arr[i] = this.grid[i].map(maptile => maptile.serialize());
+	validate():boolean{
+		try{
+			if(!this.p1 || !this.p2 || !this.grid || !this.enemies) return false;
+			let p1i = this.p1[0];
+			let p1j = this.p1[1];
+			let p2i = this.p2[0];
+			let p2j = this.p2[1];
+			//p1 or p2 on same tile
+			if(p1i == p2i && p1j == p2j) return false;
+			//player tiles occupied
+			if(this.enemies[p1i][p1j] ||
+				!(this.grid[p1i][p1j] instanceof Floor)) return false;
+			if(this.enemies[p2i][p2j] ||
+				!(this.grid[p2i][p2j] instanceof Floor)) return false;
+
+			for (let i = 0; i < GRID_ROWS; i++) {
+				for (let j = 0; j < GRID_COLS; j++) {
+					if(!(this.grid[i][j] instanceof MapTile)) return false;
+					if(this.enemies[i][j] && !(this.grid[i][j] instanceof Floor)) return false;
+				}
+			}
+		} catch (e) {
+			console.error(e);
+			return false;
 		}
-		return arr;
+		return true;
+	}
+
+	serialize(){
+		if(!this.validate()){
+			throw new Error("stage is incomplete and cannot be saved");
+		}
+		let tiles = [];
+		for (let i = 0; i < this.grid.length; i++) {
+			tiles[i] = this.grid[i].map(maptile => maptile.serialize());
+		}
+		return {
+			grid:tiles,
+			p1:this.p1,
+			p2:this.p2,
+			enemies:this.enemies
+		};
 	}
 
 	static deserialize(serialized){
 		let newStage = new Stage();
+		let tiles = serialized.grid;
 		for (let i = 0; i < newStage.grid.length; i++) {
-			newStage.grid[i] = serialized[i].map(x => MapTile.deserialize(x));
+			newStage.grid[i] = tiles[i].map(x => MapTile.deserialize(x));
 		}
+		newStage.p1 = serialized.p1;
+		newStage.p2 = serialized.p2;
+		newStage.enemies = serialized.enemies;
 		return newStage;
 	}
 }
@@ -156,10 +196,10 @@ abstract class MapTile {
 	blockShots: boolean;
 	breakable: boolean;
 	collision: Hitbox;
-	draw: (X: CanvasRenderingContext2D) => void;
 
 	protected constructor() {}
 
+	abstract draw(X: CanvasRenderingContext2D) : void;
 	abstract serialize(): any[];
 
 	static deserialize(serialized) {
@@ -181,7 +221,7 @@ abstract class MapTile {
 	}
 }
 
-class Floor implements MapTile {
+class Floor extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -190,6 +230,7 @@ class Floor implements MapTile {
 	collision;
 
 	constructor(i:number, j:number) {
+		super();
 		this.gridPos = {i: i, j: j};
 		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = false;
@@ -212,7 +253,7 @@ class Floor implements MapTile {
 	}
 }
 
-class Wall implements MapTile {
+class Wall extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -221,6 +262,7 @@ class Wall implements MapTile {
 	collision;
 
 	constructor(i:number, j:number) {
+		super();
 		this.gridPos = {i: i, j: j};
 		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = true;
@@ -241,7 +283,7 @@ class Wall implements MapTile {
 	}
 }
 
-class BreakableWall implements MapTile {
+class BreakableWall extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -250,6 +292,7 @@ class BreakableWall implements MapTile {
 	collision;
 
 	constructor(i:number, j:number) {
+		super();
 		this.gridPos = {i: i, j: j};
 		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = true;
@@ -270,7 +313,7 @@ class BreakableWall implements MapTile {
 	}
 }
 
-class Hole implements MapTile {
+class Hole extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -279,6 +322,7 @@ class Hole implements MapTile {
 	collision;
 
 	constructor(i:number, j:number) {
+		super();
 		this.gridPos = {i: i, j: j};
 		this.pos = gridPosToCanvas(i,j);
 		this.blockTanks = true;
