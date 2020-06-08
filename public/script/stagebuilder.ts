@@ -32,13 +32,12 @@ let animationLoop = 0;
 
 let selectedObjType = "floor";
 let selectedAction = "tiles";
-
-let customSize = 10;
-let customColor = "rgb(255,0,0)";
+let selectedTool = "point";
 
 let stage:Stage;
 
 let gridlinesOn = true;
+let tmpPoint = null;
 
 class Stage {
 	grid:MapTile[][];
@@ -387,6 +386,12 @@ $(document).ready(function () {
 		//selectedObjType used for both tanks and tiles
 		selectedObjType = e.target.innerText;
 	});
+	$("#choose_tool .option").click(function (e) {
+		$("#choose_tool .selected").removeClass("selected");
+		$(e.target).addClass("selected");
+		selectedTool = e.target.innerText;
+		tmpPoint = null;
+	});
 	$("#choose_action .option").click(function (e) {
 		$("#choose_action .selected").removeClass("selected");
 		$(e.target).addClass("selected");
@@ -395,28 +400,15 @@ $(document).ready(function () {
 			case "tiles":
 				$("#tile_select").removeClass("hide");
 				$("#tank_select").addClass("hide");
+				$("#choose_tile .selected").removeClass("selected");
 				break;
 			case "tanks":
 				$("#tank_select").removeClass("hide");
 				$("#tile_select").addClass("hide");
+				$("#choose_tank .selected").removeClass("selected");
 				break;
 		}
 	});
-	$("#size_input").change(function (e) {
-		// @ts-ignore
-		let v = parseFloat(e.target.value);
-		if (v > 0) {
-			customSize = v;
-		} else {
-			alert("size input error");
-		}
-	});
-	$("#color_input").change(function (e) {
-		// @ts-ignore
-		customColor = e.target.value;
-	});
-	$("#size_input").val(10);
-	$("#color_input").val("#FF0000");
 
 	document.getElementById("import").onclick = function () {
 		let container = $(`<div class="popup-container"></div>`);
@@ -595,10 +587,32 @@ function bindInputEvents(e: HTMLElement) {
 
 		$("#mousecoord").text("grid position " + i + "," + j);
 
-		if (selectedAction === "tiles") {
-			stage.setTile(selectedObjType,i,j);
-		} else if (selectedAction === "tanks") {
-			stage.setSpawn(selectedObjType,i,j);
+		if(selectedTool === "point"){
+			if (selectedAction === "tiles") {
+				stage.setTile(selectedObjType,i,j);
+			} else if (selectedAction === "tanks") {
+				stage.setSpawn(selectedObjType,i,j);
+			}
+		} else if(selectedTool === "rect"){
+			if(tmpPoint){
+				let i1 = Math.min(tmpPoint[0], i);
+				let i2 = Math.max(tmpPoint[0], i);
+				let j1 = Math.min(tmpPoint[1], j);
+				let j2 = Math.max(tmpPoint[1], j);
+				for(let i = i1; i <= i2; i++){
+					for(let j = j1; j <= j2; j++) {
+						if (selectedAction === "tiles") {
+							stage.setTile(selectedObjType,i,j);
+						} else if (selectedAction === "tanks") {
+							stage.setSpawn(selectedObjType,i,j);
+						}
+					}
+				}
+				tmpPoint = null;
+			} else {
+				tmpPoint = [i,j];
+				return;
+			}
 		}
 	});
 	e.addEventListener("contextmenu", function (ev: MouseEvent) {
