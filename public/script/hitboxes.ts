@@ -192,7 +192,7 @@ export class CapsuleHitbox implements Hitbox{
 	}
 }
 
-export class TankHitbox implements Hitbox{
+export class TankHitbox implements Hitbox, Point{
 	static rx = 15;
 	static ry = 12;
 
@@ -228,7 +228,7 @@ export class TankHitbox implements Hitbox{
 		return false;
 	}
 }
-export class ShotHitbox implements Hitbox{
+export class ShotHitbox implements Hitbox, Point{
 	static r = 5;
 
 	x:number;

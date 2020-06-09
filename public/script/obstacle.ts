@@ -1,5 +1,5 @@
-import {RectHitbox, ShotHitbox, TankHitbox} from "./hitboxes.js";
-import { Point, EPS } from "./utils.js";
+import {RectHitbox, ShotHitbox, SphereHitbox, TankHitbox} from "./hitboxes.js";
+import {Point, EPS, euclidDist, Vector} from "./utils.js";
 
 
 export abstract class Obstacle {
@@ -32,15 +32,21 @@ export class Edge extends Obstacle{
 	}
 	pushBack(hitbox:TankHitbox | ShotHitbox){
 		if(hitbox.x1 < this.x1){
+			//possible bug in inspector
+			//does not happen if hitbox is set to just one class instead of Union
+			// noinspection JSConstantReassignment
 			hitbox.x1 = this.x1 + EPS;
 		}
 		if(hitbox.x2 > this.x2){
+			// noinspection JSConstantReassignment
 			hitbox.x2 = this.x2 - EPS;
 		}
 		if(hitbox.y1 < this.y1){
+			// noinspection JSConstantReassignment
 			hitbox.y1 = this.y1 + EPS;
 		}
 		if(hitbox.y2 > this.y2){
+			// noinspection JSConstantReassignment
 			hitbox.y2 = this.y2 - EPS;
 		}
 	}
@@ -99,17 +105,21 @@ export class Wall extends Obstacle{
 		if(distX > distY){
 			if(fromPos.x < this.x){
 				//left
+				// noinspection JSConstantReassignment
 				hitbox.x2 = this.x1 - EPS;
 			} else {
 				//right
+				// noinspection JSConstantReassignment
 				hitbox.x1 = this.x2 + EPS;
 			}
 		} else {
 			if(fromPos.y < this.y){
 				//up
+				// noinspection JSConstantReassignment
 				hitbox.y2 = this.y1 - EPS;
 			} else {
 				//down
+				// noinspection JSConstantReassignment
 				hitbox.y1 = this.y2 + EPS;
 			}
 		}
@@ -138,5 +148,32 @@ export class Wall extends Obstacle{
 			return Math.PI/2;
 		}
 		throw new Error();
+	}
+}
+export class Hole extends Obstacle{
+	hitbox:SphereHitbox;
+	r:number;
+	constructor(x,y,r){
+		super(x,y);
+		this.r = r;
+		this.hitbox = new SphereHitbox(x,y,r);
+	}
+
+	collide(o:TankHitbox){
+		if(o instanceof TankHitbox){
+			return this.hitbox.collideRect(o);
+		}
+		return false;
+	}
+	pushBack(hitbox:TankHitbox){
+		let closestPoint = hitbox.getClosestEdgePoint(this);
+		//do nothing if no collision
+		if(euclidDist(closestPoint,this) > this.r){
+			return;
+		}
+		let direction = Vector.getDirection(closestPoint, this);
+		let tangentPoint = Vector.add(this, Vector.scale(direction, this.r + EPS));
+		hitbox.x += tangentPoint.x - closestPoint.x;
+		hitbox.y += tangentPoint.y - closestPoint.y;
 	}
 }

@@ -1,11 +1,12 @@
 import * as Tanks from "./tank.js";
 import Socket = SocketIOClient.Socket;
-import {Edge, Wall} from "./obstacle.js";
+import {Edge, Hole, Wall} from "./obstacle.js";
 import {TankKilledEvent} from "./exceptions.js";
+import * as SB from "./stagebuilder.js";
+import {BLOCK_MARGIN, CANVAS_HEIGHT, CANVAS_WIDTH, GRID_HEIGHT, GRID_WIDTH, gridPosToCanvas} from "./utils.js";
+import {Floor} from "./stagebuilder.js";
 
 
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
 const TANK_WIDTH = Tanks.Tank.WIDTH;
 const TANK_HEIGHT = Tanks.Tank.HEIGHT;
 const TANK_WIDTH_HALF = TANK_WIDTH/2;
@@ -41,13 +42,34 @@ class Game{
 	p1:Tanks.Tank;
 	p2:Tanks.Tank;
 	id:string;
-	constructor(){
+	stage;
+	collisionList;
+	constructor(stageData:SB.Stage){
+		this.stage = stageData;
 		this.p1 = new Tanks.Player(1);
 		this.p2 = new Tanks.Player(2);
+		let p1pos = gridPosToCanvas(stageData.p1[0],stageData.p1[1]);
+		let p2pos = gridPosToCanvas(stageData.p2[0],stageData.p2[1]);
+		this.p1.setPos(p1pos.x + GRID_WIDTH/2, p1pos.y + GRID_HEIGHT/2);
+		this.p2.setPos(p2pos.x + GRID_WIDTH/2, p2pos.y + GRID_HEIGHT/2);
+		this.collisionList = [];
+		for (let i = 0; i < stageData.grid.length; i++){
+			for (let j = 0; j < stageData.grid[0].length; j++){
+				let pos = gridPosToCanvas(i,j);
+				pos.x += GRID_WIDTH/2;
+				pos.y += GRID_HEIGHT/2;
+				if(stageData.grid[i][j] instanceof SB.Wall){
+					this.collisionList.push(new Wall(pos.x, pos.y, GRID_HEIGHT / 2 - BLOCK_MARGIN));
+				} else if(stageData.grid[i][j] instanceof SB.Hole){
+					this.collisionList.push(new Hole(pos.x, pos.y, GRID_HEIGHT / 2 - BLOCK_MARGIN));
+				} else if(stageData.grid[i][j] instanceof SB.BreakableWall){
+					this.collisionList.push(new Wall(pos.x, pos.y, GRID_HEIGHT / 2 - BLOCK_MARGIN));
+				}
+			}
+		}
 	}
 }
-window.G = new Game();
-let G = window.G;
+let G:Game;
 class Input{
 	left:boolean;
 	right:boolean;
@@ -87,15 +109,74 @@ let hitboxCX = hitboxLayer.getContext("2d") as CanvasRenderingContext2D;
 let C:HTMLCanvasElement;
 let X:CanvasRenderingContext2D;
 
-let tstblock = new Wall(300,200,100);
 let edge = new Edge(0,0,800,600);
+
+let stageData;
+
 $(document).ready(function() {
 	C = document.getElementById("canvas") as HTMLCanvasElement;
 	C.width = CANVAS_WIDTH;
 	C.height = CANVAS_HEIGHT;
 	X = C.getContext("2d") as CanvasRenderingContext2D;
 
+	document.getElementById("upload_stage").onclick = function(){
+		let container = $(`<div class="popup-container"></div>`);
+		container.on("click", function () {
+			container.remove();
+		});
+		let popup = $(`<div class="popup"><h1 class="popup-heading">Paste or upload JSON data here</h1></div>`);
+		popup.on("click", function (ev) {
+			ev.stopPropagation();
+		});
+		let content = $(`<div class="popup-content"></div>`);
+		let inputBox = $(`<textarea class="codebox" maxlength="10000"></textarea>`);
+		content.append(inputBox);
+		let buttons = $(`<div class="popup-submit"></div>`);
+		let uploadFile = $(`<input id="filein" type="file">`);
+		let submitButton = $(`<button>submit</button>`);
+		buttons.append(uploadFile);
+		buttons.append(submitButton);
+		uploadFile.on("change", function (ev) {
+			let file = (ev.target as HTMLInputElement).files[0];
+			(async function(file) {
+				try{
+					// @ts-ignore
+					// may not be supported in all browsers
+					let text = await file.text();
+					console.log("length of input read:",text.length);
+					if(text.length > 10000){
+						// noinspection ExceptionCaughtLocallyJS
+						throw new Error("input file too long");
+					}
+					inputBox.val(text);
+				}catch (e) {
+					console.error(e);
+				}finally {
+					console.log("file load process done");
+				}
+			})(file);
+		});
+		submitButton.on("click", function (ev) {
+			try{
+				let text = "" + inputBox.val();
+				let data = JSON.parse(text);
+				stageData = SB.Stage.deserialize(data);
+				alert("successfully loaded stage data");
+				container.remove();
+			} catch (e) {
+				alert("failed to understand input");
+				console.error(e);
+			}
+		});
+		popup.append(content);
+		popup.append(buttons);
+		container.append(popup);
+		$("body").append(container);
+	};
 	document.getElementById("connectBtn").onclick=function(){
+		G = new Game(stageData);
+		window.G = G;
+
 		G.sock = io.connect('/game',{
 			query:{
 				username: $("#connectId").text()
@@ -129,18 +210,24 @@ $(document).ready(function() {
 });
 
 function init() {
-	G.p1.setPos(0,0);
-	G.p2.setPos(CANVAS_WIDTH,CANVAS_HEIGHT);
-
 
 	function main() {
-		window.G.stopMain = window.requestAnimationFrame( main );
+		G.stopMain = window.requestAnimationFrame( main );
 
 		resetAngle(X);
 		X.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		tanksCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		shotsCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		hitboxCX.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+
+		X.fillStyle = "#D2AC64";
+		X.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+		for (let i = 0; i < G.stage.grid.length; i++) {
+			for (let j = 0; j < G.stage.grid[i].length; j++) {
+				let tile = G.stage.grid[i][j];
+				tile.draw(X);
+			}
+		}
 
 		moveTanks();
 		drawTankBase(tanksCX,G.p1.x,G.p1.y,G.p1.color);
@@ -163,8 +250,6 @@ function init() {
 
 		X.drawImage(tanksLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		X.drawImage(shotsLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
-		X.fillRect(tstblock.hitbox.x1,tstblock.hitbox.y1,
-			tstblock.hitbox.x2-tstblock.hitbox.x1,tstblock.hitbox.y2-tstblock.hitbox.y1);
 		X.drawImage(hitboxLayer,0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
 		G.sock.emit('sendPos', JSON.stringify({
@@ -241,7 +326,7 @@ function bindInputEvents(e:HTMLElement) {
 }
 
 function moveTanks() {
-	let collisionList = [tstblock, edge, G.p1, G.p2];
+	let collisionList = [edge, G.p1, G.p2, ...G.collisionList];
 	G.p1.move(I.up,I.down,I.left,I.right, collisionList);
 	for(let shot of [...G.p1.shots, ...G.p2.shots]){
 		try {

@@ -1,21 +1,17 @@
 import {CapsuleHitbox, Hitbox, NullHitbox} from "./hitboxes.js";
-import {Point, Vector} from "./utils.js";
+import {
+	BLOCK_MARGIN,
+	CANVAS_HEIGHT,
+	CANVAS_WIDTH,
+	canvasPosToGrid,
+	GRID_COLS, GRID_HEIGHT,
+	GRID_ROWS, GRID_WIDTH,
+	gridPosToCanvas,
+	Point,
+	Vector
+} from "./utils.js";
 import {TankColors} from "./tank.js";
 import {drawTankBase, drawTankCannon} from "./index.js";
-
-
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
-const GRID_ROWS = 18;
-const GRID_COLS = 26;
-const GRID_WIDTH = CANVAS_WIDTH / GRID_COLS;
-const GRID_HEIGHT = CANVAS_HEIGHT / GRID_ROWS;
-const BLOCK_MARGIN = 3;
-
-const KEY_UP = "ArrowUp";
-const KEY_DOWN = "ArrowDown";
-const KEY_LEFT = "ArrowLeft";
-const KEY_RIGHT = "ArrowRight";
 
 let layer1 = document.createElement('canvas');
 layer1.width = CANVAS_WIDTH;
@@ -39,7 +35,7 @@ let stage:Stage;
 let gridlinesOn = true;
 let tmpPoint = null;
 
-class Stage {
+export class Stage {
 	grid:MapTile[][];
 	p1:[number,number];
 	p2:[number,number];
@@ -222,7 +218,7 @@ abstract class MapTile {
 	}
 }
 
-class Floor extends MapTile {
+export class Floor extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -254,7 +250,7 @@ class Floor extends MapTile {
 	}
 }
 
-class Wall extends MapTile {
+export class Wall extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -284,7 +280,7 @@ class Wall extends MapTile {
 	}
 }
 
-class BreakableWall extends MapTile {
+export class BreakableWall extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -314,7 +310,7 @@ class BreakableWall extends MapTile {
 	}
 }
 
-class Hole extends MapTile {
+export class Hole extends MapTile {
 	gridPos;
 	pos;
 	blockTanks;
@@ -540,20 +536,6 @@ function init() {
 	drawGrid(X);
 	//@ts-ignore
 	window.stage = stage;
-}
-
-function canvasPosToGrid(x: number, y: number) {
-	return {
-		i: Math.trunc(y / CANVAS_HEIGHT * GRID_ROWS),
-		j: Math.trunc(x / CANVAS_WIDTH * GRID_COLS)
-	};
-}
-
-function gridPosToCanvas(i: number, j: number) {
-	return {
-		x: j * CANVAS_WIDTH / GRID_COLS,
-		y: i * CANVAS_HEIGHT / GRID_ROWS
-	};
 }
 
 function drawGrid(X: CanvasRenderingContext2D) {

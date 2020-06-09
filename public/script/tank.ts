@@ -1,7 +1,7 @@
 import {Shot, ShotSpeed, ShotType} from "./shot.js";
 import {Hitbox, TankHitbox} from "./hitboxes.js";
 import { Point } from "./utils.js";
-import { Obstacle, Wall, Edge } from "./obstacle.js";
+import {Obstacle, Wall, Edge, Hole} from "./obstacle.js";
 import {TankKilledEvent} from "./exceptions.js";
 
 enum MoveSpeed{
@@ -92,7 +92,7 @@ export class Tank {
 		if(!this.nextPos) return;
 
 		for(let o of collisionList){
-			if(o instanceof Edge){
+			if((o instanceof Edge) || (o instanceof Hole)){
 				if(o.collide(this.nextPos)){
 					o.pushBack(this.nextPos);
 				}
@@ -100,7 +100,7 @@ export class Tank {
 				if(this.nextPos.collideRect(o)){
 					o.pushBack(this.nextPos, this.pos);
 				}
-			}
+			}//todo tank-tank
 		}
 
 		this.pos = this.nextPos;
